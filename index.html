@@ -125,9 +125,18 @@ details.explain p { margin: 8px 0 0; font-size: 0.95rem }
 .field input:hover, .field select:hover { border-color: var(--muted) }
 .field input:focus, .field select:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--soft); outline: none }
 .field input[aria-invalid="true"] { border: 2px dashed var(--ink) }
-.field .err { font-size: 0.9rem; font-weight: 600; display: flex; gap: 6px; align-items: flex-start }
-.field .err::before { content: "!"; flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--strong); color: var(--on-strong); font-size: 0.75rem; display: grid; place-items: center; margin-top: 2px }
+/* Live feedback under each answer: bad (!), good (✓) or a neutral note (i) */
+.field .err { font-size: 0.9rem; display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: flex-start; position: relative; padding-left: 26px }
+.field .err::before { position: absolute; left: 0; top: 2px; width: 18px; height: 18px; border-radius: 50%; font-size: 0.72rem; font-weight: 700; display: grid; place-items: center }
+.field .err.bad { font-weight: 600 }
+.field .err.bad::before { content: "!"; background: var(--strong); color: var(--on-strong) }
+.field .err.good { color: var(--muted) }
+.field .err.good::before { content: "✓"; border: 1.5px solid var(--ink); color: var(--ink) }
+.field .err.note { color: var(--muted) }
+.field .err.note::before { content: "i"; border: 1.5px solid var(--muted); color: var(--muted); font-family: Georgia, serif }
 .field .err:empty { display: none }
+.field .err .fix { font: 650 0.85rem var(--f-sans); color: var(--ink); background: var(--panel); border: 1.5px solid var(--ink); border-radius: 6px; padding: 3px 10px; min-height: 28px; cursor: pointer }
+.field .err .fix:hover { background: var(--strong); color: var(--on-strong) }
 .choice { display: grid; gap: 10px }
 .choice label { display: flex; gap: 12px; align-items: flex-start; border: 1.5px solid var(--line); border-radius: 10px; padding: 14px 16px; cursor: pointer; color: var(--muted); font-size: 0.93rem;
   transition: border-color .2s var(--ease), background .2s var(--ease) }
@@ -725,15 +734,104 @@ function load() {
 }
 
 const q = s => s.replace(/'/g, "''"); // YAML single-quote escape
+// Plain-language reasons an answer is wrong, checked in order; the first match is shown
+const WHY = {
+  ghUser: [[v => /@/.test(v) && /\./.test(v), 'That looks like an email address. Type your GitHub username instead.'],
+    [v => /github\.com/i.test(v), 'That’s a link. Type only the username part.'],
+    [v => /\s/.test(v), 'GitHub usernames have no spaces.'],
+    [v => /[^A-Za-z0-9-]/.test(v), 'Only letters, numbers and dashes are allowed.'],
+    [v => /^-|-$/.test(v), 'It can’t start or end with a dash.'],
+    [v => /--/.test(v), 'It can’t have two dashes in a row.'],
+    [v => v.length > 39, 'That’s too long. GitHub usernames have 39 characters at most.']],
+  rdpUser: [[v => /\s/.test(v), 'No spaces. Use one word.'],
+    [v => /^[^A-Za-z]/.test(v), 'Start with a letter.'],
+    [v => /[^A-Za-z0-9._-]/.test(v), 'Use only letters and numbers.'],
+    [v => v.length > 20, 'Keep it to 20 characters or fewer.'],
+    [v => RESERVED.includes(v.toLowerCase()), 'Windows already uses this name. Pick another one.']],
+  repo: [[v => /\s/.test(v), 'Use dashes instead of spaces.'],
+    [v => /[^A-Za-z0-9._-]/.test(v), 'Use only letters, numbers and dashes.']],
+  fullName: [[v => /\d/.test(v), 'Use letters only, no numbers.'],
+    [v => /[^\p{L} .'-]/u.test(v), 'Use letters and spaces only.']],
+  wfName: [[v => v.length > 60, 'Keep it to 60 characters or fewer.'],
+    [v => /[^\p{L}\p{N} .,'()&_-]/u.test(v), 'Use letters, numbers and spaces only.']],
+  host: [[v => /[A-Z]/.test(v), 'Use lowercase letters only.'],
+    [v => /\s/.test(v), 'Use dashes instead of spaces.'],
+    [v => /[^a-z0-9-]/i.test(v), 'Use only letters, numbers and dashes.'],
+    [v => /^-|-$/.test(v), 'It can’t start or end with a dash.']],
+  ip: [[v => /[a-z]/i.test(v) && !/^https?:/i.test(v), 'Paste the Address (numbers and dots), not the username or password.'],
+    [v => /:\d+$|^https?:/i.test(v), 'Remove the extra bits around the address.'],
+    [v => /^\d+\.\d+\.\d+\.\d+$/.test(v), 'That isn’t a Tailscale address. Copy the Address from GitHub’s Summary page. It starts with 100.'],
+    [v => true, 'That address doesn’t look right. It should look like 100.101.102.103.']],
+};
+// One-click corrections, offered only when they produce a valid answer
+const FIX = {
+  ghUser: v => v.replace(/^.*github\.com\//i, '').replace(/^@/, '').split(/[/?#\s]/)[0],
+  repo: v => v.trim().replace(/\s+/g, '-').replace(/[^A-Za-z0-9._-]/g, ''),
+  rdpUser: v => v.replace(/[^A-Za-z0-9._-]/g, '').replace(/^[^A-Za-z]+/, '').slice(0, 20),
+  host: v => v.trim().toLowerCase().replace(/[\s_.]+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/^-+|-+$/g, '').slice(0, 40),
+  ip: v => v.trim().replace(/^https?:\/\//i, '').replace(/\/.*$/, '').replace(/:\d+$/, ''),
+};
+
+function say(k, kind, text, fix) {
+  const el = $('#err-' + k);
+  el.className = 'err' + (kind ? ' ' + kind : '');
+  el.textContent = text;
+  if (fix) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'fix'; b.textContent = `Change it to “${fix}”`;
+    b.onclick = () => { $('#' + k).value = state.cfg[k] = fix; if (k === 'ghUser' || k === 'repo') checkGitHub(); validCfg(true); render(); $('#' + k).focus(); };
+    el.appendChild(b);
+  }
+}
+
+// Live check that the GitHub account exists, and whether the project name is already taken
+const gh = { user: '', status: '', login: '', repo: '', repoStatus: '' };
+let ghTimer;
+function checkGitHub() {
+  const u = state.cfg.ghUser.trim(), r = state.cfg.repo.trim();
+  clearTimeout(ghTimer);
+  if (!RULES.ghUser[0](u) || (gh.user === u && gh.repo === r && gh.status)) return;
+  gh.user = u; gh.repo = r; gh.status = 'checking'; gh.repoStatus = '';
+  ghTimer = setTimeout(async () => {
+    try {
+      const res = await fetch('https://api.github.com/users/' + encodeURIComponent(u));
+      if (state.cfg.ghUser.trim() !== u) return;
+      gh.status = res.status === 200 ? 'found' : res.status === 404 ? 'missing' : 'unknown';
+      if (res.ok) gh.login = (await res.json()).login;
+      if (gh.status === 'found' && RULES.repo[0](r)) {
+        const rr = await fetch(`https://api.github.com/repos/${encodeURIComponent(u)}/${encodeURIComponent(r)}`);
+        gh.repoStatus = rr.status === 200 ? 'exists' : rr.status === 404 ? 'free' : '';
+      }
+    } catch { gh.status = 'unknown'; }
+    if (state.cfg.ghUser.trim() === u) { validCfg(true); render(); }
+  }, 600);
+}
+const ghMissing = () => gh.status === 'missing' && gh.user === state.cfg.ghUser.trim();
+
 function validCfg(show) {
   let ok = true, firstBad = null;
-  for (const [k, [test, msg]] of Object.entries(RULES)) {
-    const good = test(state.cfg[k].trim());
+  for (const [k, [test, generic]] of Object.entries(RULES)) {
+    const v = state.cfg[k].trim(), good = test(v);
     if (!good && !firstBad) firstBad = k;
     ok = ok && good;
-    const blank = !state.cfg[k].trim(); // empty fields block Continue but aren't shown as errors
-    if (show) { $('#' + k).setAttribute('aria-invalid', !good && !blank); $('#err-' + k).textContent = good || blank ? '' : msg; }
+    if (!show) continue;
+    $('#' + k).setAttribute('aria-invalid', (!good && !!v) || (k === 'ghUser' && ghMissing()));
+    if (!v) { say(k, '', ''); continue; } // empty fields block Continue but aren't shown as errors
+    if (!good) {
+      const why = (WHY[k] || []).find(([t]) => t(v)), f = FIX[k] && FIX[k](v);
+      say(k, 'bad', why ? why[1] : generic, f && f !== v && test(f) ? f : null);
+    } else if (k === 'ghUser') {
+      if (gh.user !== v || gh.status === 'checking') say(k, 'note', 'Checking GitHub…');
+      else if (gh.status === 'found') say(k, 'good', `Found ${gh.login} on GitHub.`);
+      else if (gh.status === 'missing') say(k, 'bad', `There’s no GitHub account called “${v}”. Check the spelling, or create an account at github.com/signup.`);
+      else say(k, 'note', 'Looks right. We couldn’t reach GitHub to double-check, so make sure the spelling matches.');
+    } else if (k === 'repo' && gh.repo === v && gh.repoStatus === 'exists') {
+      say(k, 'note', 'You already have a project with this name. That’s fine if it’s from an earlier try: in step 3, just tick the box and continue.');
+    } else if (k === 'repo' && gh.repo === v && gh.repoStatus === 'free') {
+      say(k, 'good', 'This name is free on your GitHub.');
+    } else say(k, 'good', 'Looks good.');
   }
+  if (ghMissing()) ok = false;
   if (show && firstBad && ['fullName', 'wfName', 'host'].includes(firstBad)) $('details.more').open = true;
   return ok;
 }
@@ -795,8 +893,11 @@ function render() {
   $$('[data-show]').forEach(el => el.hidden = !(el.dataset.show === c.pw || el.dataset.show === c.vis));
 
   $('#rdpOut').hidden = !ipGood;
-  $('#err-ip').textContent = c.ip.trim() && !ipGood ? 'That address doesn’t look right. It should start with 100. Copy it again from GitHub’s Summary page.' : '';
-  $('#ip').setAttribute('aria-invalid', !!c.ip.trim() && !ipGood);
+  const ipv = c.ip.trim();
+  if (!ipv) say('ip', '', '');
+  else if (ipGood) say('ip', 'good', 'That’s a Tailscale address. Follow the steps below.');
+  else { const f = FIX.ip(ipv); say('ip', 'bad', WHY.ip.find(([t]) => t(ipv))[1], f !== ipv && validIp(f) ? f : null); }
+  $('#ip').setAttribute('aria-invalid', !!ipv && !ipGood);
   if (ipGood) $('#rdpFile').textContent = rdpFile();
 
   steps.forEach((s, i) => s.hidden = i !== state.cur);
@@ -808,7 +909,7 @@ function render() {
   st.className = 'status' + (ok ? ' ok' : '');
   st.textContent = last && ok ? 'You’re all set. Enjoy your cloud computer.'
     : ok ? 'Done. Click Continue.'
-    : state.cur === 1 ? (Object.keys(RULES).some(k => !state.cfg[k].trim()) ? 'Fill in your GitHub username to continue.' : 'Check the answers marked with !')
+    : state.cur === 1 ? (ghMissing() ? 'Check your GitHub username.' : Object.keys(RULES).some(k => !state.cfg[k].trim()) ? 'Fill in your GitHub username to continue.' : 'Check the answers marked with !')
     : 'Tick the boxes when you’ve done each part.';
 
   const done = steps.map((_, i) => i < state.max || (i <= state.max && stepOk(i)));
@@ -845,6 +946,7 @@ document.addEventListener('input', e => {
   if (t.name === 'pw') state.cfg.pw = t.value;
   else if (t.id in state.cfg) state.cfg[t.id] = t.value;
   if (t.type === 'checkbox') state.checks[t.id] = t.checked;
+  if (t.id === 'ghUser' || t.id === 'repo') checkGitHub();
   if (t.closest('#cfg')) validCfg(true);
   render();
 });
@@ -872,6 +974,7 @@ fetch('https://api.github.com/repos/ShoaibAhmedSoomro/rdp-setup-studio')
 
 try { lucide.createIcons({ attrs: { 'aria-hidden': 'true' } }); } catch {} // icons are decorative; page works without them
 load();
+checkGitHub();
 validCfg(true);
 render();
 </script>
