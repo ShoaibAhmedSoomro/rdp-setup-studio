@@ -181,6 +181,14 @@ aside.card { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); 
 .box dd { margin: 0; font-size: 0.95rem; overflow-wrap: anywhere }
 .box dd.mono { font-family: var(--f-mono); font-size: 0.88rem }
 .box p { margin: 0; font-size: 0.9rem; color: var(--muted); display: flex; gap: 10px }
+.box.gh { display: grid; gap: 12px }
+.gh-head { display: flex; align-items: center; gap: 8px; font-weight: 650; font-size: 0.95rem }
+.gh-repo { font-family: var(--f-mono); font-size: 0.85rem; overflow-wrap: anywhere; text-decoration: none }
+.gh-repo:hover { text-decoration: underline }
+.gh-stats { display: flex; gap: 16px; font-size: 0.88rem; color: var(--muted) }
+.gh-stats span { display: inline-flex; align-items: center; gap: 6px }
+.gh-stats b { color: var(--ink); font-variant-numeric: tabular-nums }
+.gh-star { width: 100% }
 .box .reset { margin-top: 16px; width: 100%; min-height: 40px; font-size: 0.88rem }
 
 details.trouble { border-top: 1px solid var(--line); padding: 14px 0; max-width: 64ch }
@@ -532,6 +540,16 @@ footer .dev b { color: var(--ink) }
         <button class="btn reset" type="button" id="reset"><i data-lucide="rotate-ccw"></i><span class="lbl">Start over</span></button>
       </div>
       <div class="box"><p><i data-lucide="save"></i><span>Your progress is saved in this browser, so you can close this page and come back.</span></p></div>
+      <div class="box gh">
+        <div class="gh-head"><svg class="brand" aria-hidden="true"><use href="#logo-github"/></svg><span>Open source on GitHub</span></div>
+        <a class="gh-repo" href="https://github.com/ShoaibAhmedSoomro/rdp-setup-studio" target="_blank" rel="noopener">ShoaibAhmedSoomro/<b>rdp-setup-studio</b></a>
+        <p>Found this guide useful? A star helps other people find it.</p>
+        <div class="gh-stats" aria-live="polite">
+          <span><i data-lucide="star"></i><b id="ghStars">…</b> stars</span>
+          <span><i data-lucide="git-fork"></i><b id="ghForks">…</b> forks</span>
+        </div>
+        <a class="btn primary gh-star" href="https://github.com/ShoaibAhmedSoomro/rdp-setup-studio" target="_blank" rel="noopener"><i data-lucide="star"></i>Star on GitHub</a>
+      </div>
     </aside>
   </div>
 
@@ -808,6 +826,12 @@ document.addEventListener('click', e => {
   else if (b.dataset.copyText) copy(b.dataset.copyText, b);
   else copy(b.dataset.copyK === 'login' ? `.\\${state.cfg.rdpUser.trim()}` : state.cfg.ip.trim(), b);
 });
+
+// Live star and fork counts; if GitHub can't be reached the dashes stay and the button still works
+fetch('https://api.github.com/repos/ShoaibAhmedSoomro/rdp-setup-studio')
+  .then(r => r.ok ? r.json() : Promise.reject())
+  .then(d => { $('#ghStars').textContent = d.stargazers_count.toLocaleString(); $('#ghForks').textContent = d.forks_count.toLocaleString(); })
+  .catch(() => {});
 
 try { lucide.createIcons({ attrs: { 'aria-hidden': 'true' } }); } catch {} // icons are decorative; page works without them
 load();

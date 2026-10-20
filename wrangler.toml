@@ -1,0 +1,7 @@
+# Static site on Cloudflare Workers: `npx wrangler deploy`
+name = "rdp-setup-studio"
+compatibility_date = "2026-10-01"
+routes = [{ pattern = "rdp.shoaibahmedsoomro.eu.cc", custom_domain = true }]
+
+[assets]
+directory = "."

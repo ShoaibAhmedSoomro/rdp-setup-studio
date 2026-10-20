@@ -4,7 +4,7 @@
 
 A plain-language, step-by-step guide that sets up your own private Windows computer in the cloud, using GitHub Actions and Tailscale, and connects to it with Remote Desktop. Made for people with no technical background.
 
-Open `rdp-setup.html` in your browser and follow the 9 steps. The page:
+Use it at **https://rdp.shoaibahmedsoomro.eu.cc**, or open `index.html` in your browser, and follow the 9 steps. The page:
 
 - asks a few questions and writes the GitHub Actions setup file for you
 - opens each GitHub and Tailscale page you need, pre-filled where possible
