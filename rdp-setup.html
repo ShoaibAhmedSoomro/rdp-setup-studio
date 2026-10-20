@@ -1,0 +1,816 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RDP Setup Studio</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%230a0a0a'/%3E%3Crect x='176' y='100' width='236' height='180' rx='26' fill='none' stroke='%23fff' stroke-width='28'/%3E%3Crect x='100' y='216' width='248' height='196' rx='26' fill='%23fff'/%3E%3Crect x='128' y='276' width='192' height='108' rx='10' fill='%230a0a0a'/%3E%3Ccircle cx='138' cy='246' r='10' fill='%230a0a0a'/%3E%3Ccircle cx='168' cy='246' r='10' fill='%230a0a0a'/%3E%3C/svg%3E">
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="A guided, plain-language setup by Shoaib Ahmed for your own private Windows computer in the cloud.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..112,400..750&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<style>
+/* Layout: slim top bar, step progress, then one guided step beside a "your setup" card; phones get one column with Back/Continue pinned to the bottom.
+   Palette: strictly black and white with greys; state is carried by icons, weight and fill, never by hue. */
+:root {
+  --ground: #f7f7f7; --panel: #ffffff; --ink: #0a0a0a; --muted: #5e5e5e; --line: #e3e3e3; --soft: #f1f1f1; --strong: #0a0a0a; --on-strong: #ffffff;
+  --code: #111111; --code-ink: #ececec;
+  --f-sans: "Archivo", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "IBM Plex Mono", Consolas, "Courier New", monospace;
+  --ease: cubic-bezier(.2, .8, .2, 1);
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --ground: #0a0a0a; --panel: #141414; --ink: #f4f4f4; --muted: #a2a2a2; --line: #2b2b2b; --soft: #1d1d1d; --strong: #f4f4f4; --on-strong: #0a0a0a;
+  --code: #000000; --code-ink: #ececec; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --ground: #0a0a0a; --panel: #141414; --ink: #f4f4f4; --muted: #a2a2a2; --line: #2b2b2b; --soft: #1d1d1d; --strong: #f4f4f4; --on-strong: #0a0a0a;
+  --code: #000000; --code-ink: #ececec; color-scheme: dark }
+
+* { box-sizing: border-box }
+body { background: var(--ground); color: var(--ink); font: 17px/1.6 var(--f-sans); margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 56px }
+a { color: var(--ink); text-underline-offset: 3px; text-decoration-thickness: 1px }
+a:hover { text-decoration-thickness: 2px }
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px }
+code, kbd { font: 500 0.86em var(--f-mono); background: var(--soft); border: 1px solid var(--line); padding: 1px 6px; border-radius: 5px; overflow-wrap: anywhere }
+b { font-weight: 650 }
+svg.lucide { width: 1.15em; height: 1.15em; flex: none; stroke-width: 1.75 }
+svg.brand { width: 1.1em; height: 1.1em; flex: none; fill: currentColor }
+.inl { display: inline-flex; align-items: center; gap: 8px }
+.skip { position: absolute; left: -9999px; top: 8px; background: var(--panel); color: var(--ink); padding: 8px 12px; border-radius: 6px; z-index: 20 }
+.skip:focus { left: max(16px, env(safe-area-inset-left, 0px)) }
+.wrap { max-width: 1120px; margin: 0 auto }
+
+/* Top bar */
+.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-block: 18px; border-bottom: 1px solid var(--line) }
+.logo { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.05rem; letter-spacing: -0.01em }
+.logo .mark { width: 34px; height: 34px; flex: none }
+.top .by { font-size: 0.88rem; color: var(--muted) }
+.top .by b { color: var(--ink) }
+
+/* Progress */
+.progress { padding-block: 28px 22px }
+.progress .row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px }
+.progress .count { display: inline-flex; align-items: center; gap: 7px; font-size: 0.9rem; color: var(--muted) }
+.progress .count b { color: var(--ink) }
+.bars { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 6px; list-style: none; padding: 0; margin: 0 }
+.bars button { width: 100%; height: 24px; padding: 0; border: 0; background: none; cursor: pointer; display: flex; align-items: center }
+.bars button span { display: block; width: 100%; height: 6px; border-radius: 3px; background: var(--line); transition: background .25s var(--ease), height .2s var(--ease) }
+.bars button:hover:not(:disabled) span { height: 10px }
+.bars button:disabled { cursor: default }
+.bars button.done span { background: var(--ink) }
+.bars button.current span { height: 10px; background: repeating-linear-gradient(135deg, var(--ink) 0 4px, var(--muted) 4px 7px) }
+.bars button.current.done span { background: var(--ink) }
+.stages { display: grid; grid-template-columns: 2fr 4fr 2fr 1fr; gap: 6px; margin-top: 8px; font-size: 0.8rem; color: var(--muted) }
+.stages span:last-child { text-align: right }
+
+/* Body */
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 28px; align-items: start }
+main.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: clamp(20px, 4vw, 44px); min-width: 0 }
+main.panel:focus { outline: none }
+.step:not([hidden]) { animation: enter .3s var(--ease) both }
+@keyframes enter { from { opacity: 0; transform: translateY(8px) } }
+.head { display: flex; gap: 16px; align-items: flex-start; margin-bottom: 12px }
+.tile { flex: none; width: 52px; height: 52px; border-radius: 12px; background: var(--strong); color: var(--on-strong); display: grid; place-items: center }
+.tile svg { width: 26px; height: 26px }
+.meta { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted) }
+.pill svg { width: 14px; height: 14px }
+.step h1 { font: 700 clamp(1.55rem, 4vw, 2.2rem)/1.12 var(--f-sans); font-stretch: 104%; letter-spacing: -0.025em; margin: 0; text-wrap: balance }
+.lede { color: var(--muted); margin: 0 0 26px; max-width: 60ch; font-size: 1.06rem }
+.step h2 { display: flex; align-items: center; gap: 8px; font: 650 1.08rem var(--f-sans); margin: 30px 0 12px }
+
+/* Numbered instructions */
+ol.how { list-style: none; counter-reset: how; margin: 0; padding: 0; display: grid; gap: 14px; max-width: 64ch }
+ol.how > li { counter-increment: how; display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 12px; align-items: start }
+ol.how > li::before { content: counter(how); width: 30px; height: 30px; border-radius: 50%; border: 1.5px solid var(--ink); display: grid; place-items: center;
+  font-size: 0.85rem; font-weight: 650; font-variant-numeric: tabular-nums }
+ol.how > li > div { padding-top: 2px; min-width: 0 }
+ol.how small { display: block; color: var(--muted); font-size: 0.9rem; margin-top: 2px }
+.things { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none }
+.things li { border: 1px solid var(--line); border-radius: 12px; padding: 16px; font-size: 0.93rem; color: var(--muted); display: grid; gap: 4px; align-content: start }
+.things li svg { width: 26px; height: 26px; color: var(--ink); margin-bottom: 6px }
+.things b { display: block; color: var(--ink); font-size: 1rem }
+
+/* Explainers */
+details.explain { background: var(--soft); border-radius: 10px; padding: 12px 16px; margin: 0 0 22px; max-width: 64ch }
+details.explain summary, details.more summary, details.trouble summary { cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; list-style: none }
+details summary::-webkit-details-marker { display: none }
+details summary::after { content: ""; margin-left: auto; width: 8px; height: 8px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg) translateY(-2px); transition: transform .2s var(--ease); flex: none }
+details[open] > summary::after { transform: rotate(-135deg) translateY(-2px) }
+details.explain p { margin: 8px 0 0; font-size: 0.95rem }
+
+/* Form */
+.form { display: grid; gap: 22px; max-width: 560px }
+.field { display: grid; gap: 6px; min-width: 0 }
+.field > label, .field > .lab { font-weight: 650; display: flex; align-items: center; gap: 8px }
+.field .hint { font-size: 0.9rem; color: var(--muted) }
+.field input, .field select { font: 1rem var(--f-sans); color: var(--ink); background: var(--panel); border: 1.5px solid var(--line); border-radius: 8px; padding: 12px 14px; width: 100%; min-height: 48px;
+  transition: border-color .2s var(--ease), box-shadow .2s var(--ease) }
+.field input::placeholder { color: var(--muted); opacity: .7 }
+.field input:hover, .field select:hover { border-color: var(--muted) }
+.field input:focus, .field select:focus { border-color: var(--ink); box-shadow: 0 0 0 3px var(--soft); outline: none }
+.field input[aria-invalid="true"] { border: 2px dashed var(--ink) }
+.field .err { font-size: 0.9rem; font-weight: 600; display: flex; gap: 6px; align-items: flex-start }
+.field .err::before { content: "!"; flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--strong); color: var(--on-strong); font-size: 0.75rem; display: grid; place-items: center; margin-top: 2px }
+.field .err:empty { display: none }
+.choice { display: grid; gap: 10px }
+.choice label { display: flex; gap: 12px; align-items: flex-start; border: 1.5px solid var(--line); border-radius: 10px; padding: 14px 16px; cursor: pointer; color: var(--muted); font-size: 0.93rem;
+  transition: border-color .2s var(--ease), background .2s var(--ease) }
+.choice label:hover { border-color: var(--muted) }
+.choice label:has(input:checked) { border-color: var(--ink); background: var(--soft); color: var(--ink) }
+.choice input { margin-top: 5px; accent-color: var(--ink); width: 18px; height: 18px; flex: none }
+.choice b { display: block; color: var(--ink); font-size: 1rem }
+details.more { border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; max-width: 560px }
+details.more .form { margin-top: 18px }
+
+/* Buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; font: 650 0.98rem var(--f-sans); border-radius: 10px; padding: 11px 20px; cursor: pointer; text-decoration: none;
+  border: 1.5px solid var(--line); background: var(--panel); color: var(--ink); transition: background .2s var(--ease), border-color .2s var(--ease), transform .12s var(--ease), color .2s var(--ease) }
+.btn:hover:not(:disabled) { border-color: var(--ink) }
+.btn:active:not(:disabled) { transform: translateY(1px) }
+.btn.primary { background: var(--strong); border-color: var(--strong); color: var(--on-strong) }
+.btn.primary:hover:not(:disabled) { background: var(--panel); color: var(--ink); border-color: var(--ink) }
+.btn:disabled { opacity: .35; cursor: not-allowed }
+.btn svg.lucide { transition: transform .2s var(--ease) }
+.btn:hover:not(:disabled) .go { transform: translate(2px, -2px) }
+.btn:hover:not(:disabled) .fwd { transform: translateX(3px) }
+.btn:hover:not(:disabled) .bwd { transform: translateX(-3px) }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 24px }
+.chip { display: inline-flex; align-items: center; gap: 5px; font: 600 0.8rem var(--f-sans); border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 6px; padding: 3px 9px; min-height: 28px; cursor: pointer; margin-left: 6px; vertical-align: 1px;
+  transition: border-color .2s var(--ease) }
+.chip svg { width: 13px; height: 13px }
+.chip:hover { border-color: var(--ink) }
+
+.code { position: relative; background: var(--code); color: var(--code-ink); border-radius: 10px; margin: 14px 0 }
+.code pre { margin: 0; padding: 18px; overflow: auto; max-height: 380px; font: 0.8rem/1.6 var(--f-mono); white-space: pre }
+.code .copy { position: absolute; top: 10px; right: 10px; display: inline-flex; align-items: center; gap: 6px; font: 600 0.8rem var(--f-sans); background: var(--code); color: var(--code-ink); border: 1px solid var(--code-ink); border-radius: 6px; padding: 5px 12px; cursor: pointer }
+.code .copy svg { width: 14px; height: 14px }
+.code .copy:hover { background: var(--code-ink); color: var(--code) }
+
+.note { display: flex; gap: 12px; border-radius: 10px; padding: 14px 16px; margin: 22px 0; font-size: 0.95rem; max-width: 64ch; border: 1px solid var(--line); background: var(--soft) }
+.note > svg { margin-top: 3px }
+.note.warn { background: var(--panel); border: 2px solid var(--ink) }
+.note b:first-child { display: block }
+
+/* Checks */
+.verify { margin-top: 32px; border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; display: grid; gap: 12px }
+.verify > p { margin: 0; font-weight: 650; display: flex; gap: 10px; align-items: flex-start }
+.verify > p small { display: block; font-weight: 400; color: var(--muted); font-size: 0.9rem }
+.verify label { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; max-width: 64ch }
+.verify input { appearance: none; flex: none; width: 24px; height: 24px; margin: 1px 0 0; border: 2px solid var(--muted); border-radius: 6px; background: var(--panel); cursor: pointer; display: grid; place-items: center;
+  transition: background .15s var(--ease), border-color .15s var(--ease) }
+.verify input:hover { border-color: var(--ink) }
+.verify input::after { content: ""; width: 10px; height: 5px; border: 2.5px solid var(--on-strong); border-top: 0; border-right: 0; transform: translateY(-1px) rotate(-45deg) scale(0); transition: transform .15s var(--ease) }
+.verify input:checked { background: var(--strong); border-color: var(--strong) }
+.verify input:checked::after { transform: translateY(-1px) rotate(-45deg) scale(1) }
+.verify label:has(input:checked) > span, .verify label:has(input:checked) { color: var(--muted) }
+
+/* Footer actions */
+.foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--line) }
+.foot .status { font-size: 0.92rem; color: var(--muted); flex: 1; display: flex; justify-content: center; align-items: center; gap: 6px; text-align: center }
+.foot .status.ok { color: var(--ink); font-weight: 650 }
+
+/* Side card */
+aside.card { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); display: grid; gap: 16px }
+.box { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px 22px }
+.box h2 { margin: 0 0 14px; font: 650 1rem var(--f-sans) }
+.box dl { display: grid; gap: 12px; margin: 0 }
+.box dl > div { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 2px 12px }
+.box dl svg { grid-row: span 2; margin-top: 2px; color: var(--muted) }
+.box dt { font-size: 0.82rem; color: var(--muted) }
+.box dd { margin: 0; font-size: 0.95rem; overflow-wrap: anywhere }
+.box dd.mono { font-family: var(--f-mono); font-size: 0.88rem }
+.box p { margin: 0; font-size: 0.9rem; color: var(--muted); display: flex; gap: 10px }
+.box .reset { margin-top: 16px; width: 100%; min-height: 40px; font-size: 0.88rem }
+
+details.trouble { border-top: 1px solid var(--line); padding: 14px 0; max-width: 64ch }
+details.trouble p { margin: 8px 0 0; color: var(--muted) }
+footer.credit { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 18px 24px; color: var(--muted); font-size: 0.9rem; border-top: 1px solid var(--line); padding-top: 24px; margin-top: 40px }
+footer .dev { display: grid; gap: 6px }
+footer .dev .logo { color: var(--ink) }
+footer .dev .mark { width: 28px; height: 28px }
+footer .dev b { color: var(--ink) }
+.social { display: flex; flex-wrap: wrap; gap: 8px }
+.social a { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 8px 14px; border: 1.5px solid var(--line); border-radius: 10px; color: var(--ink); text-decoration: none; font-weight: 600; font-size: 0.88rem;
+  transition: border-color .2s var(--ease), background .2s var(--ease), color .2s var(--ease), transform .12s var(--ease) }
+.social a:hover { background: var(--strong); color: var(--on-strong); border-color: var(--strong) }
+.social a:active { transform: translateY(1px) }
+
+@media (max-width: 920px) {
+  .grid { grid-template-columns: minmax(0, 1fr) }
+  aside.card { position: static }
+}
+@media (max-width: 640px) {
+  body { font-size: 16px; padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)) }
+  .top .by span { display: none }
+  .progress { padding-block: 20px 16px }
+  .bars { gap: 4px }
+  .stages { display: none }
+  main.panel { border-radius: 12px }
+  .tile { width: 44px; height: 44px; border-radius: 10px }
+  .tile svg { width: 22px; height: 22px }
+  .things { grid-template-columns: minmax(0, 1fr) }
+  .things li { grid-template-columns: 30px minmax(0, 1fr); column-gap: 12px }
+  .things li svg { grid-row: span 2; margin: 2px 0 0 }
+  .actions .btn { width: 100% }
+  .foot { position: fixed; left: 0; right: 0; bottom: 0; z-index: 10; margin: 0; background: var(--panel); border-top: 1px solid var(--line);
+    padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); flex-wrap: wrap }
+  .foot .status { order: -1; flex-basis: 100%; font-size: 0.85rem }
+  .foot .btn { flex: 1 }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important }
+}
+</style>
+
+<!-- Brand logos (GitHub and Tailscale from Simple Icons, CC0; Windows drawn from its four-pane mark), shown in one colour to match the page -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="logo-github" viewBox="0 0 24 24"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></symbol>
+  <symbol id="logo-tailscale" viewBox="0 0 24 24"><path d="M24 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm-9 9a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm0-9a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm6-6a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0-.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM3 24a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0-.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zm18 .5a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm0-.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM6 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm9-9a3 3 0 1 1-6 0 3 3 0 0 1 6 0zm-3 2.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM6 3a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM3 5.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/></symbol>
+  <symbol id="logo-windows" viewBox="0 0 24 24"><path d="M0 0h11.4v11.4H0zM12.6 0H24v11.4H12.6zM0 12.6h11.4V24H0zM12.6 12.6H24V24H12.6z"/></symbol>
+  <symbol id="logo-linkedin" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></symbol>
+  <symbol id="logo-instagram" viewBox="0 0 24 24"><path d="M7.0301.084c-1.2768.0602-2.1487.264-2.911.5634-.7888.3075-1.4575.72-2.1228 1.3877-.6652.6677-1.075 1.3368-1.3802 2.127-.2954.7638-.4956 1.6365-.552 2.914-.0564 1.2775-.0689 1.6882-.0626 4.947.0062 3.2586.0206 3.6671.0825 4.9473.061 1.2765.264 2.1482.5635 2.9107.308.7889.72 1.4573 1.388 2.1228.6679.6655 1.3365 1.0743 2.1285 1.38.7632.295 1.6361.4961 2.9134.552 1.2773.056 1.6884.069 4.9462.0627 3.2578-.0062 3.668-.0207 4.9478-.0814 1.28-.0607 2.147-.2652 2.9098-.5633.7889-.3086 1.4578-.72 2.1228-1.3881.665-.6682 1.0745-1.3378 1.3795-2.1284.2957-.7632.4966-1.636.552-2.9124.056-1.2809.0692-1.6898.063-4.948-.0063-3.2583-.021-3.6668-.0817-4.9465-.0607-1.2797-.264-2.1487-.5633-2.9117-.3084-.7889-.72-1.4568-1.3876-2.1228C21.2982 1.33 20.628.9208 19.8378.6165 19.074.321 18.2017.1197 16.9244.0645 15.6471.0093 15.236-.005 11.977.0014 8.718.0076 8.31.0215 7.0301.0839m.1402 21.6932c-1.17-.0509-1.8053-.2453-2.2287-.408-.5606-.216-.96-.4771-1.3819-.895-.422-.4178-.6811-.8186-.9-1.378-.1644-.4234-.3624-1.058-.4171-2.228-.0595-1.2645-.072-1.6442-.079-4.848-.007-3.2037.0053-3.583.0607-4.848.05-1.169.2456-1.805.408-2.2282.216-.5613.4762-.96.895-1.3816.4188-.4217.8184-.6814 1.3783-.9003.423-.1651 1.0575-.3614 2.227-.4171 1.2655-.06 1.6447-.072 4.848-.079 3.2033-.007 3.5835.005 4.8495.0608 1.169.0508 1.8053.2445 2.228.408.5608.216.96.4754 1.3816.895.4217.4194.6816.8176.9005 1.3787.1653.4217.3617 1.056.4169 2.2263.0602 1.2655.0739 1.645.0796 4.848.0058 3.203-.0055 3.5834-.061 4.848-.051 1.17-.245 1.8055-.408 2.2294-.216.5604-.4763.96-.8954 1.3814-.419.4215-.8181.6811-1.3783.9-.4224.1649-1.0577.3617-2.2262.4174-1.2656.0595-1.6448.072-4.8493.079-3.2045.007-3.5825-.006-4.848-.0608M16.953 5.5864A1.44 1.44 0 1 0 18.39 4.144a1.44 1.44 0 0 0-1.437 1.4424M5.8385 12.012c.0067 3.4032 2.7706 6.1557 6.173 6.1493 3.4026-.0065 6.157-2.7701 6.1506-6.1733-.0065-3.4032-2.771-6.1565-6.174-6.1498-3.403.0067-6.156 2.771-6.1496 6.1738M8 12.0077a4 4 0 1 1 4.008 3.9921A3.9996 3.9996 0 0 1 8 12.0077"/></symbol>
+  <symbol id="logo-facebook" viewBox="0 0 24 24"><path d="M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z"/></symbol>
+  <!-- App mark: logos/export/logo.svg, recoloured through the theme tokens -->
+  <symbol id="app-mark" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="var(--strong)"/><rect x="176" y="100" width="236" height="180" rx="26" fill="none" stroke="var(--on-strong)" stroke-width="28"/><rect x="100" y="216" width="248" height="196" rx="26" fill="var(--on-strong)"/><rect x="128" y="276" width="192" height="108" rx="10" fill="var(--strong)"/><circle cx="138" cy="246" r="10" fill="var(--strong)"/><circle cx="168" cy="246" r="10" fill="var(--strong)"/></symbol>
+</svg>
+<a class="skip" href="#panel">Skip to the current step</a>
+<div class="wrap">
+  <header class="top">
+    <div class="logo"><svg class="mark" aria-hidden="true"><use href="#app-mark"/></svg>RDP Setup Studio</div>
+    <div class="by"><span>Made by </span><b>Shoaib Ahmed</b></div>
+  </header>
+
+  <nav class="progress" aria-label="Setup progress">
+    <div class="row">
+      <span class="count">Step <b id="nowNum">1</b> of 9 <i data-lucide="clock"></i> <span id="nowTime"></span></span>
+      <span class="count"><i data-lucide="circle-check"></i> <span id="nowDone"></span></span>
+    </div>
+    <ol class="bars" id="bars"></ol>
+    <div class="stages" aria-hidden="true"><span>Get ready</span><span>Set up GitHub and Tailscale</span><span>Start it</span><span>Use it</span></div>
+  </nav>
+
+  <div class="grid">
+    <main class="panel" id="panel" tabindex="-1">
+
+      <!-- 1 -->
+      <section class="step" data-title="Get ready" data-time="2 minutes" hidden>
+        <div class="head"><span class="tile"><i data-lucide="rocket"></i></span><div>
+          <div class="meta"><span class="pill"><i data-lucide="app-window"></i>On this page</span></div>
+          <h1>Your own Windows computer in the cloud</h1></div></div>
+        <p class="lede">By the end of this guide you'll open a full Windows computer in a window on your PC. It runs on GitHub's servers, only you can reach it, and it's free. You set it up once, then start it whenever you need it, for up to 6 hours at a time.</p>
+        <h2>Three free tools make it work</h2>
+        <ul class="things">
+          <li><svg class="brand" aria-hidden="true"><use href="#logo-github"/></svg><b>GitHub</b>Builds the cloud computer for you each time you ask.</li>
+          <li><svg class="brand" aria-hidden="true"><use href="#logo-tailscale"/></svg><b>Tailscale</b>A private connection between your PC and the cloud computer.</li>
+          <li><svg class="brand" aria-hidden="true"><use href="#logo-windows"/></svg><b>Remote Desktop</b>Already on your Windows PC. It shows the cloud computer in a window.</li>
+        </ul>
+        <div class="note"><i data-lucide="shield-check"></i><div><b>You won't type any passwords here.</b>This page only gives directions. Anything private goes straight into GitHub or Tailscale.</div></div>
+        <div class="verify"><p><i data-lucide="list-checks"></i><span>Tick each one to continue<small>Don't have an account yet? The links open the free sign-up page.</small></span></p>
+          <label><input type="checkbox" id="v0a"> <span>I have a GitHub account and I'm signed in. <a href="https://github.com/signup" target="_blank" rel="noopener">Create one</a></span></label>
+          <label><input type="checkbox" id="v0b"> <span>I have a Tailscale account. <a href="https://login.tailscale.com/start" target="_blank" rel="noopener">Create one</a> (choose "Sign in with GitHub")</span></label>
+          <label><input type="checkbox" id="v0c"> <span class="inl">I'm using a Windows PC <svg class="brand" aria-hidden="true"><use href="#logo-windows"/></svg></span></label>
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section class="step" data-title="Your details" data-time="1 minute" hidden>
+        <div class="head"><span class="tile"><i data-lucide="user-round-cog"></i></span><div>
+          <div class="meta"><span class="pill"><i data-lucide="app-window"></i>On this page</span></div>
+          <h1>A few details</h1></div></div>
+        <p class="lede">Only your GitHub username is needed. Everything else has a ready-made answer you can keep or change.</p>
+        <form class="form" id="cfg" novalidate>
+          <div class="field">
+            <label for="ghUser"><svg class="brand" aria-hidden="true"><use href="#logo-github"/></svg>Your GitHub username</label>
+            <input id="ghUser" autocomplete="off" spellcheck="false" placeholder="For example: jane-smith" aria-describedby="hint-ghUser err-ghUser">
+            <span class="hint" id="hint-ghUser">Not sure? On GitHub, click your picture at the top right. Your username is the bold name at the top of the menu.</span>
+            <span class="err" id="err-ghUser"></span>
+          </div>
+          <div class="field">
+            <label for="rdpUser"><i data-lucide="user-round"></i>Name you'll sign in to Windows with</label>
+            <input id="rdpUser" autocomplete="off" spellcheck="false" aria-describedby="hint-rdpUser err-rdpUser">
+            <span class="hint" id="hint-rdpUser">One word, like your first name. No spaces.</span>
+            <span class="err" id="err-rdpUser"></span>
+          </div>
+          <div class="field">
+            <label for="repo"><i data-lucide="folder"></i>Name for the project on GitHub</label>
+            <input id="repo" autocomplete="off" spellcheck="false" placeholder="my-cloud-pc" aria-describedby="hint-repo err-repo">
+            <span class="hint" id="hint-repo">GitHub keeps your setup in a project folder with this name. Use letters, numbers and dashes.</span>
+            <span class="err" id="err-repo"></span>
+          </div>
+          <div class="field">
+            <span class="lab" id="pwLab"><i data-lucide="key-round"></i>Password for the cloud computer</span>
+            <div class="choice" role="radiogroup" aria-labelledby="pwLab">
+              <label><input type="radio" name="pw" value="auto"><span><b>Make a new one each time (recommended)</b>GitHub shows it to you when the computer is ready. Nothing to remember.</span></label>
+              <label><input type="radio" name="pw" value="secret"><span><b>Use my own password</b>Same password every time. You'll save it in GitHub in step 6.</span></label>
+            </div>
+          </div>
+          <details class="more">
+            <summary><i data-lucide="sliders-horizontal"></i>More options (you can skip these)</summary>
+            <div class="form">
+              <div class="field">
+                <label for="hours"><i data-lucide="timer"></i>How long each session lasts</label>
+                <select id="hours">
+                  <option value="1">1 hour</option><option value="2">2 hours</option><option value="3">3 hours</option>
+                  <option value="4">4 hours</option><option value="5">5 hours</option><option value="6">6 hours (the most GitHub allows)</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="fullName"><i data-lucide="id-card"></i>Your name as Windows shows it</label>
+                <input id="fullName" autocomplete="off" aria-describedby="err-fullName">
+                <span class="err" id="err-fullName"></span>
+              </div>
+              <div class="field">
+                <label for="wfName"><i data-lucide="play"></i>Name of the start button in GitHub</label>
+                <input id="wfName" autocomplete="off" aria-describedby="err-wfName">
+                <span class="err" id="err-wfName"></span>
+              </div>
+              <div class="field">
+                <label for="host"><i data-lucide="server"></i>Name of the cloud computer in Tailscale</label>
+                <input id="host" autocomplete="off" spellcheck="false" aria-describedby="err-host">
+                <span class="hint">Lowercase letters, numbers and dashes.</span>
+                <span class="err" id="err-host"></span>
+              </div>
+              <div class="field">
+                <label for="vis"><i data-lucide="eye-off"></i>Who can see the GitHub project</label>
+                <select id="vis"><option value="private">Only me (recommended)</option><option value="public">Everyone</option></select>
+              </div>
+            </div>
+          </details>
+        </form>
+      </section>
+
+      <!-- 3 -->
+      <section class="step" data-title="Create the GitHub project" data-time="1 minute" hidden>
+        <div class="head"><span class="tile"><i data-lucide="folder-plus"></i></span><div>
+          <div class="meta"><span class="pill"><svg class="brand" aria-hidden="true"><use href="#logo-github"/></svg>On GitHub</span></div>
+          <h1>Create your project on GitHub</h1></div></div>
+        <p class="lede">This is the folder on GitHub where your setup lives. You only do this once.</p>
+        <div class="actions"><a class="btn primary" data-link="newRepo" target="_blank" rel="noopener"><svg class="brand" aria-hidden="true"><use href="#logo-github"/></svg>Open GitHub<i data-lucide="arrow-up-right" class="go"></i></a></div>
+        <ol class="how">
+          <li><div>A GitHub page opens in a new tab with the name <code data-k="repo"></code> already typed in.</div></li>
+          <li><div>Make sure <b data-k="visCap"></b> is selected.<small>It's a little further down the page.</small></div></li>
+          <li><div>Scroll to the bottom and click the green <b>Create repository</b> button.</div></li>
+          <li><div>Come back to this tab.</div></li>
+        </ol>
+        <div class="note warn" data-show="public"><i data-lucide="triangle-alert"></i><div><b>Your project will be visible to everyone.</b>Anyone could see the password GitHub shows. Choosing "Only me" in step 2 is safer.</div></div>
+        <div class="verify"><p><i data-lucide="eye"></i>Tick when you see this</p>
+          <label><input type="checkbox" id="v3a"> <span>GitHub shows my new project page, titled <b><span data-k="ghUser"></span>/<span data-k="repo"></span></b>.</span></label>
+        </div>
+        <details class="explain" style="margin-top:20px"><summary><i data-lucide="circle-help"></i>Already made this project before?</summary><p>That's fine. Tick the box and continue.</p></details>
+      </section>
+
+      <!-- 4 -->
+      <section class="step" data-title="Add the setup file" data-time="1 minute" hidden>
+        <div class="head"><span class="tile"><i data-lucide="file-cog"></i></span><div>
+          <div class="meta"><span class="pill"><svg class="brand" aria-hidden="true"><use href="#logo-github"/></svg>On GitHub</span></div>
+          <h1>Add the setup file</h1></div></div>
+        <p class="lede">This file tells GitHub how to build your Windows computer. We've written it for you from your details.</p>
+        <div class="actions"><a class="btn primary" data-link="newFile" target="_blank" rel="noopener"><i data-lucide="file-plus"></i>Open the file in GitHub<i data-lucide="arrow-up-right" class="go"></i></a></div>
+        <ol class="how">
+          <li><div>GitHub opens with the file already filled in.<small>At the top you'll see the name <code>.github/workflows/rdp.yml</code>.</small></div></li>
+          <li><div>Click the green <b>Commit changes</b> button at the top right.</div></li>
+          <li><div>A small box pops up. Click <b>Commit changes</b> again.</div></li>
+          <li><div>Come back to this tab.</div></li>
+        </ol>
+        <details class="explain" style="margin-top:22px"><summary><i data-lucide="circle-help"></i>The editor opened empty?</summary>
+          <p>Click <b>Copy the file</b> below, click inside the big empty box on GitHub, and press <kbd>Ctrl</kbd>+<kbd>V</kbd> to paste. Then type <code>.github/workflows/rdp.yml</code> in the name box at the top.</p>
+          <div class="code"><button class="copy" type="button" data-copy="yaml"><i data-lucide="copy"></i><span class="lbl">Copy the file</span></button><pre id="yaml" tabindex="0" aria-label="Setup file contents"></pre></div>
+        </details>
+        <div class="verify"><p><i data-lucide="eye"></i>Tick when you see this</p>
+          <label><input type="checkbox" id="v4a"> <span>My project page now shows a folder called <b>.github</b>.</span></label>
+          <label><input type="checkbox" id="v4b"> <span>When I click <a data-link="actions" target="_blank" rel="noopener">Actions</a> at the top of my project, I see <b data-k="wfName"></b> on the left.<small>If GitHub shows a green button about enabling workflows, click it.</small></span></label>
+        </div>
+      </section>
+
+      <!-- 5 -->
+      <section class="step" data-title="Get a Tailscale key" data-time="2 minutes" hidden>
+        <div class="head"><span class="tile"><i data-lucide="key-round"></i></span><div>
+          <div class="meta"><span class="pill"><svg class="brand" aria-hidden="true"><use href="#logo-tailscale"/></svg>On Tailscale</span></div>
+          <h1>Get a key from Tailscale</h1></div></div>
+        <p class="lede">The key is like an invitation. It lets your cloud computer join your private connection, so your PC can reach it and no one else can.</p>
+        <div class="actions"><a class="btn primary" href="https://login.tailscale.com/admin/settings/keys" target="_blank" rel="noopener"><svg class="brand" aria-hidden="true"><use href="#logo-tailscale"/></svg>Open Tailscale<i data-lucide="arrow-up-right" class="go"></i></a></div>
+        <ol class="how">
+          <li><div>Sign in if Tailscale asks you to.</div></li>
+          <li><div>Under <b>Auth keys</b>, click <b>Generate auth key</b>.</div></li>
+          <li><div>Turn on the switch named <b>Reusable</b>.<small>So the same key works every time you start the computer.</small></div></li>
+          <li><div>Turn on the switch named <b>Ephemeral</b>.<small>So the cloud computer is cleaned up when you're done.</small></div></li>
+          <li><div>Click <b>Generate key</b>, then click <b>Copy</b>.<small>Keep that Tailscale tab open. You'll paste the key in the next step.</small></div></li>
+        </ol>
+        <div class="note warn"><i data-lucide="triangle-alert"></i><div><b>Keep this key private, like a password.</b>Only paste it into GitHub in the next step. Never send it in a message or email.</div></div>
+        <div class="verify"><p><i data-lucide="list-checks"></i>Tick when you've done this</p>
+          <label><input type="checkbox" id="v5a"> I turned on both Reusable and Ephemeral.</label>
+          <label><input type="checkbox" id="v5b"> <span>I copied the key. It starts with <code>tskey-auth-</code>.</span></label>
+        </div>
+      </section>
+
+      <!-- 6 -->
+      <section class="step" data-title="Save the key in GitHub" data-time="1 minute" hidden>
+        <div class="head"><span class="tile"><i data-lucide="lock-keyhole"></i></span><div>
+          <div class="meta"><span class="pill"><svg class="brand" aria-hidden="true"><use href="#logo-github"/></svg>On GitHub</span></div>
+          <h1>Save the key in GitHub</h1></div></div>
+        <p class="lede">GitHub keeps the key in a locked box called a secret. Your setup file uses it, but no one can read it back, not even you.</p>
+        <div class="actions"><a class="btn primary" data-link="newSecret" target="_blank" rel="noopener"><i data-lucide="lock-keyhole"></i>Open GitHub secrets<i data-lucide="arrow-up-right" class="go"></i></a></div>
+        <ol class="how">
+          <li><div>In the <b>Name</b> box, type <code>TAILSCALE_AUTH_KEY</code><button class="chip" type="button" data-copy-text="TAILSCALE_AUTH_KEY" aria-label="Copy the name TAILSCALE_AUTH_KEY"><i data-lucide="copy"></i><span class="lbl">Copy</span></button><small>It has to match exactly, so copying is easiest.</small></div></li>
+          <li><div>In the <b>Secret</b> box, paste the key from Tailscale with <kbd>Ctrl</kbd>+<kbd>V</kbd>.</div></li>
+          <li><div>Click the green <b>Add secret</b> button.</div></li>
+        </ol>
+        <div data-show="secret">
+          <h2><i data-lucide="key-round"></i>Now save your own password</h2>
+          <ol class="how">
+            <li><div>Click <b>New repository secret</b>.</div></li>
+            <li><div>Name: <code>RDP_PASSWORD</code><button class="chip" type="button" data-copy-text="RDP_PASSWORD" aria-label="Copy the name RDP_PASSWORD"><i data-lucide="copy"></i><span class="lbl">Copy</span></button></div></li>
+            <li><div>Secret: type your password.<small>Use at least 8 characters with capital letters, small letters and numbers. Don't include your sign-in name.</small></div></li>
+            <li><div>Click <b>Add secret</b>.</div></li>
+          </ol>
+        </div>
+        <div class="verify"><p><i data-lucide="eye"></i>Tick when you see this</p>
+          <label><input type="checkbox" id="v6a"> <span>GitHub lists <b>TAILSCALE_AUTH_KEY</b> under <b>Repository secrets</b>.</span></label>
+          <label data-show="secret"><input type="checkbox" id="v6b"> <span>GitHub also lists <b>RDP_PASSWORD</b>.</span></label>
+        </div>
+      </section>
+
+      <!-- 7 -->
+      <section class="step" data-title="Install Tailscale on your PC" data-time="3 minutes" hidden>
+        <div class="head"><span class="tile"><i data-lucide="download"></i></span><div>
+          <div class="meta"><span class="pill"><i data-lucide="laptop"></i>On your PC</span></div>
+          <h1>Install Tailscale on your PC</h1></div></div>
+        <p class="lede">Your PC needs Tailscale too. It's what lets your PC find the cloud computer.</p>
+        <div class="actions"><a class="btn primary" href="https://tailscale.com/download/windows" target="_blank" rel="noopener"><i data-lucide="download"></i>Download Tailscale<i data-lucide="arrow-up-right" class="go"></i></a></div>
+        <ol class="how">
+          <li><div>Open the file you downloaded and click through the installer.</div></li>
+          <li><div>Find the Tailscale icon at the bottom right of your screen, near the clock.<small>It may be hidden under the small up arrow ^.</small></div></li>
+          <li><div>Click it and choose <b>Log in</b>.</div></li>
+          <li><div>Sign in with the <b>same account</b> you used for the key in step 5.</div></li>
+        </ol>
+        <div class="verify"><p><i data-lucide="eye"></i>Tick when you see this</p>
+          <label><input type="checkbox" id="v7a"> <span>Clicking the Tailscale icon shows <b>Connected</b>.</span></label>
+        </div>
+      </section>
+
+      <!-- 8 -->
+      <section class="step" data-title="Start the cloud computer" data-time="4 minutes" hidden>
+        <div class="head"><span class="tile"><i data-lucide="power"></i></span><div>
+          <div class="meta"><span class="pill"><svg class="brand" aria-hidden="true"><use href="#logo-github"/></svg>On GitHub</span></div>
+          <h1>Start your cloud computer</h1></div></div>
+        <p class="lede">Do this every time you want to use it. It takes about 3 minutes to get ready.</p>
+        <div class="actions"><a class="btn primary" data-link="workflow" target="_blank" rel="noopener"><i data-lucide="play"></i>Open the start page<i data-lucide="arrow-up-right" class="go"></i></a></div>
+        <ol class="how">
+          <li><div>On the right, click <b>Run workflow</b>, then the green <b>Run workflow</b> button in the box that opens.</div></li>
+          <li><div>Wait a few seconds and refresh the page. A new line appears at the top. Click it.</div></li>
+          <li><div>Wait until the yellow circle next to <b>Windows Remote Desktop</b> keeps spinning and no step shows a red cross.<small>Usually 2 to 4 minutes.</small></div></li>
+          <li><div>Click <b>Summary</b> at the top left. You'll see the <b>Address</b>, <b>Username</b> and <b>Password</b>.</div></li>
+        </ol>
+        <div class="note" data-show="secret"><i data-lucide="info"></i><div><b>The password shows as ***.</b>That's expected. Use the password you saved in step 6.</div></div>
+        <div class="verify"><p><i data-lucide="eye"></i>Tick when you see this</p>
+          <label><input type="checkbox" id="v8a"> <span>The Summary shows an <b>Address</b> that starts with <code>100.</code></span></label>
+        </div>
+      </section>
+
+      <!-- 9 -->
+      <section class="step" data-title="Connect" data-time="1 minute" hidden>
+        <div class="head"><span class="tile"><i data-lucide="monitor-check"></i></span><div>
+          <div class="meta"><span class="pill"><i data-lucide="laptop"></i>On your PC</span></div>
+          <h1>Open your cloud computer</h1></div></div>
+        <p class="lede">Paste the address from GitHub's Summary page, and we'll show you exactly what to type.</p>
+        <div class="form">
+          <div class="field">
+            <label for="ip"><i data-lucide="map-pin"></i>Address from the Summary page</label>
+            <input id="ip" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="Looks like 100.101.102.103" aria-describedby="err-ip">
+            <span class="err" id="err-ip"></span>
+          </div>
+        </div>
+        <div id="rdpOut" hidden>
+          <h2><i data-lucide="screen-share"></i>Now connect</h2>
+          <ol class="how">
+            <li><div>Press the <kbd>Windows</kbd> key, type <b>Remote Desktop Connection</b> and open it.</div></li>
+            <li><div>In <b>Computer</b>, paste <code data-k="ip"></code><button class="chip" type="button" data-copy-k="ip" aria-label="Copy the address"><i data-lucide="copy"></i><span class="lbl">Copy</span></button> and click <b>Connect</b>.</div></li>
+            <li><div>When it asks for your details, click <b>More choices</b>, then <b>Use a different account</b>.</div></li>
+            <li><div>User name: <code>.\<span data-k="rdpUser"></span></code><button class="chip" type="button" data-copy-k="login" aria-label="Copy the user name"><i data-lucide="copy"></i><span class="lbl">Copy</span></button><small>Include the dot and backslash at the start.</small></div></li>
+            <li><div>Password: copy it from GitHub's Summary page and paste it. Click <b>OK</b>.</div></li>
+            <li><div>If a warning about a certificate appears, click <b>Yes</b>. Your cloud computer opens.</div></li>
+          </ol>
+          <details class="explain" style="margin-top:22px"><summary><i data-lucide="file-symlink"></i>Want a shortcut to double-click next time?</summary>
+            <p>Copy the text below, paste it into Notepad, choose <b>File</b> then <b>Save as</b>, set <b>Save as type</b> to <b>All files</b>, and name it <code>My cloud PC.rdp</code>. The address changes each session, so update the first line when you start a new one.</p>
+            <div class="code"><button class="copy" type="button" data-copy="rdpFile"><i data-lucide="copy"></i><span class="lbl">Copy</span></button><pre id="rdpFile" tabindex="0" aria-label="Shortcut file contents"></pre></div>
+          </details>
+          <div class="note"><i data-lucide="power-off"></i><div><b>When you're finished</b>Go back to the run on GitHub and click <b>Cancel workflow</b>. If you forget, it switches off on its own after <span data-k="hours"></span> hours. Files you saved on the cloud computer are deleted when it switches off.</div></div>
+        </div>
+
+        <h2><i data-lucide="life-buoy"></i>Something not working?</h2>
+        <details class="trouble"><summary>"Remote Desktop can't connect to the remote computer"</summary>
+          <p>Click the Tailscale icon near the clock and check it says Connected, with the same account as the key. Then check the GitHub run is still running (yellow spinning circle). If it finished, start a new one from step 8.</p></details>
+        <details class="trouble"><summary>"The credentials that were used to connect did not work"</summary>
+          <p>Type the user name with the dot and backslash first: <code>.\<span data-k="rdpUser"></span></code>. Copy the password from the newest run's Summary page, not an older one.</p></details>
+        <details class="trouble"><summary>A step on GitHub shows a red cross</summary>
+          <p>If it's "Connect to Tailscale network", the key is wrong or expired. Make a new one (step 5) and save it again (step 6). If it's "Create user account", your own password was too simple. Change it in step 6.</p></details>
+        <details class="trouble"><summary>I can't find "Run workflow"</summary>
+          <p>Open your project's Actions tab. If there's a green button about enabling workflows, click it. Then click <b data-k="wfName"></b> on the left.</p></details>
+        <div class="verify"><p><i data-lucide="party-popper"></i>Last one</p>
+          <label><input type="checkbox" id="v9a"> I can see the Windows desktop.</label>
+        </div>
+      </section>
+
+      <div class="foot">
+        <button class="btn" type="button" id="back"><i data-lucide="arrow-left" class="bwd"></i><span class="lbl">Back</span></button>
+        <span class="status" id="status" aria-live="polite"></span>
+        <button class="btn primary" type="button" id="next"><span class="lbl">Continue</span><i data-lucide="arrow-right" class="fwd"></i></button>
+      </div>
+    </main>
+
+    <aside class="card" aria-label="Your setup">
+      <div class="box">
+        <h2>Your setup</h2>
+        <dl>
+          <div><svg class="brand" aria-hidden="true"><use href="#logo-github"/></svg><dt>GitHub project</dt><dd class="mono"><span data-k="ghUser"></span>/<span data-k="repo"></span></dd></div>
+          <div><i data-lucide="user-round"></i><dt>Windows sign-in name</dt><dd class="mono">.\<span data-k="rdpUser"></span></dd></div>
+          <div><i data-lucide="key-round"></i><dt>Password</dt><dd data-k="pwLabel"></dd></div>
+          <div><i data-lucide="timer"></i><dt>Each session lasts</dt><dd><span data-k="hours"></span> hours</dd></div>
+          <div><i data-lucide="map-pin"></i><dt>Cloud computer address</dt><dd data-k="ipLabel"></dd></div>
+        </dl>
+        <button class="btn reset" type="button" id="reset"><i data-lucide="rotate-ccw"></i><span class="lbl">Start over</span></button>
+      </div>
+      <div class="box"><p><i data-lucide="save"></i><span>Your progress is saved in this browser, so you can close this page and come back.</span></p></div>
+    </aside>
+  </div>
+
+  <footer class="credit">
+    <div class="dev">
+      <span class="logo"><svg class="mark" aria-hidden="true"><use href="#app-mark"/></svg>RDP Setup Studio</span>
+      <span>Designed and built by <b>Shoaib Ahmed</b></span>
+    </div>
+    <nav class="social" aria-label="Shoaib Ahmed online">
+      <a href="https://github.com/ShoaibAhmedSoomro" target="_blank" rel="noopener"><svg class="brand" aria-hidden="true"><use href="#logo-github"/></svg>GitHub</a>
+      <a href="https://www.linkedin.com/in/shoaibaofficial/" target="_blank" rel="noopener"><svg class="brand" aria-hidden="true"><use href="#logo-linkedin"/></svg>LinkedIn</a>
+      <a href="https://www.instagram.com/shoaib_ahmedsoomro" target="_blank" rel="noopener"><svg class="brand" aria-hidden="true"><use href="#logo-instagram"/></svg>Instagram</a>
+      <a href="https://www.facebook.com/shoaibahmedsoomroofficial/" target="_blank" rel="noopener"><svg class="brand" aria-hidden="true"><use href="#logo-facebook"/></svg>Facebook</a>
+    </nav>
+  </footer>
+</div>
+
+<script type="text/plain" id="tpl">name: '%%WF_NAME%%'
+run-name: Remote Desktop session started by @${{ github.actor }}
+
+on:
+  workflow_dispatch:
+
+env:
+  RDP_USER: %%RDP_USER%%
+  RDP_FULLNAME: '%%FULL_NAME%%'
+  SESSION_MINUTES: %%MINUTES%%
+
+jobs:
+  rdp-session:
+    name: Windows Remote Desktop (Tailscale)
+    runs-on: windows-latest
+    timeout-minutes: 360 # GitHub-hosted job hard limit is 6h
+
+    steps:
+      - name: Enable Remote Desktop
+        run: |
+          # Network Level Authentication stays on: credentials are sent by your client, so keyboard layout can't break them
+          Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name fDenyTSConnections -Value 0
+          netsh advfirewall firewall add rule name="RDP-Tailscale" dir=in action=allow protocol=TCP localport=3389 | Out-Null
+          Restart-Service -Name TermService -Force
+          Write-Host "Remote Desktop enabled on port 3389."
+
+      - name: Create user account
+%%PW_ENV%%        run: |
+%%PW_LINES%%
+          New-LocalUser -Name $env:RDP_USER -FullName $env:RDP_FULLNAME -Password (ConvertTo-SecureString $password -AsPlainText -Force) -AccountNeverExpires -PasswordNeverExpires | Out-Null
+          Add-LocalGroupMember -Group "Administrators" -Member $env:RDP_USER
+          Add-LocalGroupMember -Group "Remote Desktop Users" -Member $env:RDP_USER
+          "RDP_PASSWORD=$password" >> $env:GITHUB_ENV
+          Write-Host "User '$env:RDP_USER' created with administrator rights."
+
+      - name: Install Tailscale
+        run: |
+          $msi = "$env:TEMP\tailscale.msi"
+          Invoke-WebRequest -Uri "https://pkgs.tailscale.com/stable/tailscale-setup-latest-amd64.msi" -OutFile $msi
+          Start-Process msiexec.exe -ArgumentList "/i", "`"$msi`"", "/quiet", "/norestart" -Wait
+          Write-Host "Tailscale installed."
+
+      - name: Connect to Tailscale network
+        run: |
+          $ts = "$env:ProgramFiles\Tailscale\tailscale.exe"
+          & $ts up --authkey="${{ secrets.TAILSCALE_AUTH_KEY }}" --hostname="%%HOST%%-$env:GITHUB_RUN_NUMBER"
+          $ip = $null
+          for ($i = 0; -not $ip -and $i -lt 12; $i++) { Start-Sleep 5; $ip = & $ts ip -4 }
+          if (-not $ip) { Write-Error "Tailscale did not assign an IP address. Check the TAILSCALE_AUTH_KEY secret."; exit 1 }
+          "TAILSCALE_IP=$ip" >> $env:GITHUB_ENV
+          Write-Host "Connected to Tailscale as %%HOST%%-$env:GITHUB_RUN_NUMBER ($ip)."
+
+      - name: Verify RDP is reachable
+        run: |
+          if (-not (Test-NetConnection -ComputerName $env:TAILSCALE_IP -Port 3389 -WarningAction SilentlyContinue).TcpTestSucceeded) { Write-Error "Port 3389 is not reachable."; exit 1 }
+          Write-Host "RDP port 3389 is reachable at $env:TAILSCALE_IP."
+
+      - name: Publish connection details
+        run: |
+          @"
+          ## Remote Desktop is ready
+
+          | | |
+          |---|---|
+          | **Address** | ``$env:TAILSCALE_IP`` |
+          | **Username** | ``.\$env:RDP_USER`` |
+          | **Password** | ``$env:RDP_PASSWORD`` |
+
+          1. Make sure Tailscale is running on your PC and signed in to the same account.
+          2. Open **Remote Desktop Connection** and enter the address above.
+          3. Sign in with the username and password above.
+
+          The session ends after about %%HOURS%% h, or when this run is cancelled.
+          "@ >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Keep session alive
+        run: |
+          Write-Host "============================================"
+          Write-Host "  %%WF_NAME_PS%% - session is LIVE"
+          Write-Host "--------------------------------------------"
+          Write-Host "  Address  : $env:TAILSCALE_IP"
+          Write-Host "  Username : .\$env:RDP_USER"
+          Write-Host "  Password : $env:RDP_PASSWORD"
+          Write-Host "============================================"
+          Write-Host "Cancel this run to end the session early."
+          $start = Get-Date
+          $end = $start.AddMinutes([int]$env:SESSION_MINUTES)
+          while ((Get-Date) -lt $end) {
+              Start-Sleep 300
+              Write-Host ("[{0:HH:mm}] Session active - uptime {1:hh\:mm}" -f (Get-Date), ((Get-Date) - $start))
+          }
+          Write-Host "Session time limit reached. Ending session."
+</script>
+
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const steps = $$('.step');
+const KEY = 'rdp-setup-studio-v4';
+const RESERVED = ['administrator', 'guest', 'defaultaccount', 'wdagutilityaccount', 'runneradmin', 'system', 'everyone'];
+// ponytail: GitHub username has no sensible default, so it starts empty; everything else gets a generic default
+const DEFAULTS = { ghUser: '', repo: 'my-cloud-pc', rdpUser: 'CloudUser', fullName: 'Cloud User', wfName: 'My Cloud PC', host: 'my-cloud-pc', hours: '6', vis: 'private', pw: 'auto', ip: '' };
+const RULES = {
+  ghUser: [v => /^[a-z\d](?:[a-z\d]|-(?=[a-z\d])){0,38}$/i.test(v), 'That doesn’t look like a GitHub username. It uses only letters, numbers and single dashes.'],
+  rdpUser: [v => /^[A-Za-z][A-Za-z0-9._-]{0,19}$/.test(v) && !RESERVED.includes(v.toLowerCase()), 'Use one word that starts with a letter, up to 20 characters, no spaces. Names like Administrator and Guest are already taken by Windows.'],
+  repo: [v => /^[A-Za-z0-9._-]{1,100}$/.test(v) && !/^\.+$/.test(v), 'Use letters, numbers and dashes only, with no spaces.'],
+  fullName: [v => /^\p{L}[\p{L} .'-]{0,63}$/u.test(v), 'Use letters and spaces only.'],
+  wfName: [v => /^[\p{L}\p{N}][\p{L}\p{N} .,'()&_-]{0,59}$/u.test(v), 'Use letters, numbers and spaces, up to 60 characters.'],
+  host: [v => /^[a-z0-9](?:[a-z0-9-]{0,38}[a-z0-9])?$/.test(v), 'Use lowercase letters, numbers and dashes, with no dash at the start or end.'],
+};
+
+let state = { cur: 0, max: 0, cfg: { ...DEFAULTS }, checks: {} };
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.cfg) state = { ...state, ...s, cfg: { ...DEFAULTS, ...s.cfg } }; } catch {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} };
+
+function load() {
+  for (const k of ['ghUser', 'repo', 'rdpUser', 'fullName', 'wfName', 'host', 'hours', 'vis', 'ip']) $('#' + k).value = state.cfg[k];
+  $$('input[name=pw]').forEach(r => r.checked = r.value === state.cfg.pw);
+  $$('.verify input').forEach(b => b.checked = !!state.checks[b.id]);
+}
+
+const q = s => s.replace(/'/g, "''"); // YAML single-quote escape
+function validCfg(show) {
+  let ok = true, firstBad = null;
+  for (const [k, [test, msg]] of Object.entries(RULES)) {
+    const good = test(state.cfg[k].trim());
+    if (!good && !firstBad) firstBad = k;
+    ok = ok && good;
+    const blank = !state.cfg[k].trim(); // empty fields block Continue but aren't shown as errors
+    if (show) { $('#' + k).setAttribute('aria-invalid', !good && !blank); $('#err-' + k).textContent = good || blank ? '' : msg; }
+  }
+  if (show && firstBad && ['fullName', 'wfName', 'host'].includes(firstBad)) $('details.more').open = true;
+  return ok;
+}
+const validIp = v => { const m = v.trim().match(/^100\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/); return !!m && +m[1] >= 64 && +m[1] <= 127 && +m[2] <= 255 && +m[3] <= 255; };
+
+function yaml() {
+  const c = Object.fromEntries(Object.entries(state.cfg).map(([k, v]) => [k, String(v).trim()]));
+  const secret = c.pw === 'secret';
+  const pwLines = secret
+    ? `          $password = $env:RDP_PASSWORD_SECRET\n          if (-not $password -or $password.Length -lt 8) { Write-Error "Repository secret RDP_PASSWORD is missing or shorter than 8 characters."; exit 1 }`
+    : `          # Letters and numbers only, so it types correctly on any keyboard layout. "Aa1" meets Windows complexity rules.\n          $chars = [char[]](48..57 + 65..90 + 97..122)\n          $password = (-join (1..16 | ForEach-Object { $chars | Get-Random })) + "Aa1"`;
+  const pwEnv = secret ? '        env:\n          RDP_PASSWORD_SECRET: ${{ secrets.RDP_PASSWORD }}\n' : '';
+  const map = {
+    WF_NAME: q(c.wfName), WF_NAME_PS: c.wfName.replace(/["`$]/g, ''), RDP_USER: c.rdpUser, FULL_NAME: q(c.fullName),
+    MINUTES: Math.min(+c.hours * 60, 350), HOURS: c.hours, HOST: c.host, PW_ENV: pwEnv, PW_LINES: pwLines,
+  };
+  return $('#tpl').textContent.replace(/%%(\w+)%%/g, (_, k) => map[k]);
+}
+const rdpFile = () => [
+  `full address:s:${state.cfg.ip.trim()}`, `username:s:.\\${state.cfg.rdpUser.trim()}`, 'prompt for credentials:i:1',
+  'authentication level:i:2', 'screen mode id:i:2', 'session bpp:i:32', 'redirectclipboard:i:1', 'audiomode:i:0',
+].join('\r\n');
+
+function stepOk(i) {
+  if (i === 1) return validCfg(false);
+  return [...steps[i].querySelectorAll('.verify input')].filter(b => !b.closest('[hidden]')).every(b => b.checked);
+}
+
+const bars = steps.map((s, i) => {
+  const li = document.createElement('li'), b = document.createElement('button');
+  b.type = 'button';
+  b.innerHTML = '<span></span>';
+  b.setAttribute('aria-label', `Step ${i + 1}: ${s.dataset.title}`);
+  b.onclick = () => { state.cur = i; render(); };
+  li.appendChild(b); $('#bars').appendChild(li);
+  return b;
+});
+
+const label = (el, text) => (el.querySelector('.lbl') || el).textContent = text;
+
+function render() {
+  const c = state.cfg, u = encodeURIComponent(c.ghUser.trim()), r = encodeURIComponent(c.repo.trim());
+  const base = `https://github.com/${u}/${r}`;
+  const ipGood = validIp(c.ip);
+  const view = {
+    ...c, ghUser: c.ghUser.trim() || 'your-username', visCap: c.vis === 'private' ? 'Private' : 'Public',
+    pwLabel: c.pw === 'secret' ? 'My own (saved in GitHub)' : 'New each time', login: `.\\${c.rdpUser}`,
+    ipLabel: ipGood ? c.ip.trim() : 'You’ll get this in step 8',
+  };
+  $$('[data-k]').forEach(el => el.textContent = view[el.dataset.k] ?? '');
+  const y = yaml();
+  $('#yaml').textContent = y;
+  const links = {
+    newRepo: `https://github.com/new?name=${r}&visibility=${c.vis}`,
+    newFile: `${base}/new/main?filename=${encodeURIComponent('.github/workflows/rdp.yml')}&value=${encodeURIComponent(y)}`,
+    actions: `${base}/actions`, workflow: `${base}/actions/workflows/rdp.yml`, newSecret: `${base}/settings/secrets/actions/new`,
+  };
+  $$('[data-link]').forEach(a => a.href = links[a.dataset.link]);
+  $$('[data-show]').forEach(el => el.hidden = !(el.dataset.show === c.pw || el.dataset.show === c.vis));
+
+  $('#rdpOut').hidden = !ipGood;
+  $('#err-ip').textContent = c.ip.trim() && !ipGood ? 'That address doesn’t look right. It should start with 100. Copy it again from GitHub’s Summary page.' : '';
+  $('#ip').setAttribute('aria-invalid', !!c.ip.trim() && !ipGood);
+  if (ipGood) $('#rdpFile').textContent = rdpFile();
+
+  steps.forEach((s, i) => s.hidden = i !== state.cur);
+  const ok = stepOk(state.cur), last = state.cur === steps.length - 1;
+  $('#back').disabled = state.cur === 0;
+  $('#next').disabled = !ok || last;
+  label($('#next'), last ? 'All done' : 'Continue');
+  const st = $('#status');
+  st.className = 'status' + (ok ? ' ok' : '');
+  st.textContent = last && ok ? 'You’re all set. Enjoy your cloud computer.'
+    : ok ? 'Done. Click Continue.'
+    : state.cur === 1 ? (Object.keys(RULES).some(k => !state.cfg[k].trim()) ? 'Fill in your GitHub username to continue.' : 'Check the answers marked with !')
+    : 'Tick the boxes when you’ve done each part.';
+
+  const done = steps.map((_, i) => i < state.max || (i <= state.max && stepOk(i)));
+  bars.forEach((b, i) => {
+    b.className = (done[i] ? 'done' : '') + (i === state.cur ? ' current' : '');
+    b.disabled = i > state.max;
+    if (i === state.cur) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
+  });
+  $('#nowNum').textContent = state.cur + 1;
+  $('#nowTime').textContent = 'about ' + steps[state.cur].dataset.time;
+  $('#nowDone').textContent = `${done.filter(Boolean).length} of 9 done`;
+  save();
+}
+
+const go = d => {
+  state.cur += d; state.max = Math.max(state.max, state.cur); render();
+  $('#panel').focus({ preventScroll: true });
+  $('.progress').scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+};
+$('#next').onclick = () => stepOk(state.cur) && go(1);
+$('#back').onclick = () => go(-1);
+
+let resetArmed = false;
+$('#reset').onclick = () => {
+  const b = $('#reset');
+  if (!resetArmed) { resetArmed = true; label(b, 'Click again to clear everything'); setTimeout(() => { resetArmed = false; label(b, 'Start over'); }, 4000); return; }
+  state = { cur: 0, max: 0, cfg: { ...DEFAULTS }, checks: {} };
+  resetArmed = false; label(b, 'Start over');
+  load(); validCfg(true); render();
+};
+
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.name === 'pw') state.cfg.pw = t.value;
+  else if (t.id in state.cfg) state.cfg[t.id] = t.value;
+  if (t.type === 'checkbox') state.checks[t.id] = t.checked;
+  if (t.closest('#cfg')) validCfg(true);
+  render();
+});
+
+function copy(text, btn, pre) {
+  const old = (btn.querySelector('.lbl') || btn).textContent;
+  navigator.clipboard.writeText(text).then(
+    () => { label(btn, 'Copied'); setTimeout(() => label(btn, old), 1400); },
+    () => { if (pre) getSelection().selectAllChildren(pre); label(btn, 'Press Ctrl+C'); setTimeout(() => label(btn, old), 2000); }
+  );
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-copy],[data-copy-text],[data-copy-k]');
+  if (!b) return;
+  if (b.dataset.copy) copy($('#' + b.dataset.copy).textContent, b, $('#' + b.dataset.copy));
+  else if (b.dataset.copyText) copy(b.dataset.copyText, b);
+  else copy(b.dataset.copyK === 'login' ? `.\\${state.cfg.rdpUser.trim()}` : state.cfg.ip.trim(), b);
+});
+
+try { lucide.createIcons({ attrs: { 'aria-hidden': 'true' } }); } catch {} // icons are decorative; page works without them
+load();
+validCfg(true);
+render();
+</script>
