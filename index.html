@@ -86,6 +86,21 @@ ol.how > li::before { content: counter(how); width: 30px; height: 30px; border-r
   font-size: 0.85rem; font-weight: 650; font-variant-numeric: tabular-nums }
 ol.how > li > div { padding-top: 2px; min-width: 0 }
 ol.how small { display: block; color: var(--muted); font-size: 0.9rem; margin-top: 2px }
+ol.how small.where { display: flex; align-items: center; gap: 6px; font-size: 0.84rem; margin-top: 4px }
+ol.how small.where svg { width: 14px; height: 14px }
+/* Pictures of the controls people have to find on GitHub, Tailscale and Windows */
+.ui { display: inline-flex; align-items: center; gap: 6px; vertical-align: 1px; font-size: 0.86em; font-weight: 650; line-height: 1.2; padding: 3px 9px; margin: 1px 2px;
+  border: 1.5px solid var(--ink); border-radius: 6px; background: var(--panel); color: var(--ink); white-space: nowrap }
+.ui svg { width: 13px; height: 13px }
+.ui.go { background: var(--strong); border-color: var(--strong); color: var(--on-strong) }
+.ui.tab { border-width: 0 0 2.5px; border-radius: 0; padding-inline: 2px }
+.ui.input { border-style: dashed; font-weight: 500 }
+.ui.sw { font-weight: 600 }
+.ui .knob { width: 26px; height: 15px; border-radius: 8px; background: var(--strong); position: relative; flex: none }
+.ui .knob::after { content: ""; position: absolute; top: 2px; right: 2px; width: 11px; height: 11px; border-radius: 50%; background: var(--on-strong) }
+.ui.radio { font-weight: 600 }
+.ui .dot { width: 14px; height: 14px; border-radius: 50%; border: 4px solid var(--ink); flex: none }
+@media (max-width: 640px) { .ui { white-space: normal } }
 .things { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 0; padding: 0; list-style: none }
 .things li { border: 1px solid var(--line); border-radius: 12px; padding: 16px; font-size: 0.93rem; color: var(--muted); display: grid; gap: 4px; align-content: start }
 .things li svg { width: 26px; height: 26px; color: var(--ink); margin-bottom: 6px }
@@ -356,10 +371,12 @@ footer .dev b { color: var(--ink) }
         <p class="lede">This is the folder on GitHub where your setup lives. You only do this once.</p>
         <div class="actions"><a class="btn primary" data-link="newRepo" target="_blank" rel="noopener"><svg class="brand" aria-hidden="true"><use href="#logo-github"/></svg>Open GitHub<i data-lucide="arrow-up-right" class="go"></i></a></div>
         <ol class="how">
-          <li><div>A GitHub page opens in a new tab with the name <code data-k="repo"></code> already typed in.</div></li>
-          <li><div>Make sure <b data-k="visCap"></b> is selected.<small>It's a little further down the page.</small></div></li>
-          <li><div>Scroll to the bottom and click the green <b>Create repository</b> button.</div></li>
-          <li><div>Come back to this tab.</div></li>
+          <li><div>Click the black <span class="ui"><i data-lucide="mouse-pointer-click"></i>Open GitHub</span> button above.<small>GitHub opens in a new tab called "Create a new repository".</small></div></li>
+          <li><div>Look at the <span class="ui input"><i data-lucide="text-cursor-input"></i>Repository name</span> box. It already says <code data-k="repo"></code>.<small>If a red message says the name already exists, you made it before. Tick the box below and continue.</small></div></li>
+          <li><div>A little lower, find the two round options and click <span class="ui radio"><span class="dot"></span><span data-k="visCap"></span></span>.<small class="where"><i data-lucide="locate-fixed"></i>Under the description box</small></div></li>
+          <li><div>Leave every other option as it is. Don’t tick "Add a README file".</div></li>
+          <li><div>Scroll to the bottom and click the green <span class="ui go"><i data-lucide="mouse-pointer-click"></i>Create repository</span> button.<small class="where"><i data-lucide="locate-fixed"></i>Bottom right of the page</small></div></li>
+          <li><div>A page titled "Quick setup" appears. That means it worked. Come back to this tab.</div></li>
         </ol>
         <div class="note warn" data-show="public"><i data-lucide="triangle-alert"></i><div><b>Your project will be visible to everyone.</b>Anyone could see the password GitHub shows. Choosing "Only me" in step 2 is safer.</div></div>
         <div class="verify"><p><i data-lucide="eye"></i>Tick when you see this</p>
@@ -376,10 +393,14 @@ footer .dev b { color: var(--ink) }
         <p class="lede">This file tells GitHub how to build your Windows computer. We've written it for you from your details.</p>
         <div class="actions"><a class="btn primary" data-link="newFile" target="_blank" rel="noopener"><i data-lucide="file-plus"></i>Open the file in GitHub<i data-lucide="arrow-up-right" class="go"></i></a></div>
         <ol class="how">
-          <li><div>GitHub opens with the file already filled in.<small>At the top you'll see the name <code>.github/workflows/rdp.yml</code>.</small></div></li>
-          <li><div>Click the green <b>Commit changes</b> button at the top right.</div></li>
-          <li><div>A small box pops up. Click <b>Commit changes</b> again.</div></li>
-          <li><div>Come back to this tab.</div></li>
+          <li><div>Click the black <span class="ui"><i data-lucide="mouse-pointer-click"></i>Open the file in GitHub</span> button above.<small>GitHub opens its file editor in a new tab.</small></div></li>
+          <li><div>At the top, check the name box reads <code>.github/workflows/rdp.yml</code>.<small class="where"><i data-lucide="locate-fixed"></i>Top left, next to your project name</small></div></li>
+          <li><div>Below it, the big white area is already full of text that starts with <code>name:</code>. Don’t change anything.</div></li>
+          <li><div>Click the green <span class="ui go"><i data-lucide="mouse-pointer-click"></i>Commit changes...</span> button.<small class="where"><i data-lucide="locate-fixed"></i>Top right of the page</small></div></li>
+          <li><div>A small window called "Commit changes" opens. Leave everything as it is and click the green <span class="ui go"><i data-lucide="mouse-pointer-click"></i>Commit changes</span> button inside it.<small class="where"><i data-lucide="locate-fixed"></i>Bottom right of the small window</small></div></li>
+          <li><div>Click <span class="ui tab">Actions</span> in the row of tabs at the top of your project.<small class="where"><i data-lucide="locate-fixed"></i>Top of the page, between "Pull requests" and "Projects"</small></div></li>
+          <li><div>If you see a green <span class="ui go"><i data-lucide="mouse-pointer-click"></i>I understand my workflows, go ahead and enable them</span> button, click it.<small>Most people won’t see this. That’s fine.</small></div></li>
+          <li><div>On the left you’ll now see <b data-k="wfName"></b>. Come back to this tab.</div></li>
         </ol>
         <details class="explain" style="margin-top:22px"><summary><i data-lucide="circle-help"></i>The editor opened empty?</summary>
           <p>Click <b>Copy the file</b> below, click inside the big empty box on GitHub, and press <kbd>Ctrl</kbd>+<kbd>V</kbd> to paste. Then type <code>.github/workflows/rdp.yml</code> in the name box at the top.</p>
@@ -399,11 +420,15 @@ footer .dev b { color: var(--ink) }
         <p class="lede">The key is like an invitation. It lets your cloud computer join your private connection, so your PC can reach it and no one else can.</p>
         <div class="actions"><a class="btn primary" href="https://login.tailscale.com/admin/settings/keys" target="_blank" rel="noopener"><svg class="brand" aria-hidden="true"><use href="#logo-tailscale"/></svg>Open Tailscale<i data-lucide="arrow-up-right" class="go"></i></a></div>
         <ol class="how">
-          <li><div>Sign in if Tailscale asks you to.</div></li>
-          <li><div>Under <b>Auth keys</b>, click <b>Generate auth key</b>.</div></li>
-          <li><div>Turn on the switch named <b>Reusable</b>.<small>So the same key works every time you start the computer.</small></div></li>
-          <li><div>Turn on the switch named <b>Ephemeral</b>.<small>So the cloud computer is cleaned up when you're done.</small></div></li>
-          <li><div>Click <b>Generate key</b>, then click <b>Copy</b>.<small>Keep that Tailscale tab open. You'll paste the key in the next step.</small></div></li>
+          <li><div>Click the black <span class="ui"><i data-lucide="mouse-pointer-click"></i>Open Tailscale</span> button above.<small>If Tailscale asks you to sign in, choose the same way you signed up, for example "Sign in with GitHub".</small></div></li>
+          <li><div>You land on the "Keys" page. Find the "Auth keys" section and click <span class="ui"><i data-lucide="mouse-pointer-click"></i>Generate auth key...</span><small class="where"><i data-lucide="locate-fixed"></i>Middle of the page, on the right of "Auth keys"</small></div></li>
+          <li><div>A window called "Generate auth key" opens. Click the <span class="ui input"><i data-lucide="text-cursor-input"></i>Description</span> box and type <code>GitHub RDP</code>.</div></li>
+          <li><div>Click the <span class="ui sw"><span class="knob"></span>Reusable</span> switch so it turns on.<small>A switch is on when it fills in and the dot moves to the right.</small></div></li>
+          <li><div>Under <span class="ui input"><i data-lucide="text-cursor-input"></i>Expiration</span>, choose <b>90 days</b>.</div></li>
+          <li><div>Click the <span class="ui sw"><span class="knob"></span>Ephemeral</span> switch so it turns on too.</div></li>
+          <li><div>Leave "Tags" and "Pre-approved" switched off.</div></li>
+          <li><div>Click <span class="ui go"><i data-lucide="mouse-pointer-click"></i>Generate key</span>.<small class="where"><i data-lucide="locate-fixed"></i>Bottom right of the window</small></div></li>
+          <li><div>The key appears. Click <span class="ui"><i data-lucide="mouse-pointer-click"></i>Copy</span> next to it.<small>Don’t close this window yet. You’ll paste the key in the next step.</small></div></li>
         </ol>
         <div class="note warn"><i data-lucide="triangle-alert"></i><div><b>Keep this key private, like a password.</b>Only paste it into GitHub in the next step. Never send it in a message or email.</div></div>
         <div class="verify"><p><i data-lucide="list-checks"></i>Tick when you've done this</p>
@@ -420,17 +445,21 @@ footer .dev b { color: var(--ink) }
         <p class="lede">GitHub keeps the key in a locked box called a secret. Your setup file uses it, but no one can read it back, not even you.</p>
         <div class="actions"><a class="btn primary" data-link="newSecret" target="_blank" rel="noopener"><i data-lucide="lock-keyhole"></i>Open GitHub secrets<i data-lucide="arrow-up-right" class="go"></i></a></div>
         <ol class="how">
-          <li><div>In the <b>Name</b> box, type <code>TAILSCALE_AUTH_KEY</code><button class="chip" type="button" data-copy-text="TAILSCALE_AUTH_KEY" aria-label="Copy the name TAILSCALE_AUTH_KEY"><i data-lucide="copy"></i><span class="lbl">Copy</span></button><small>It has to match exactly, so copying is easiest.</small></div></li>
-          <li><div>In the <b>Secret</b> box, paste the key from Tailscale with <kbd>Ctrl</kbd>+<kbd>V</kbd>.</div></li>
-          <li><div>Click the green <b>Add secret</b> button.</div></li>
+          <li><div>Click the black <span class="ui"><i data-lucide="mouse-pointer-click"></i>Open GitHub secrets</span> button above.<small>GitHub opens a page called "Actions secrets / New secret".</small></div></li>
+          <li><div>Click this copy button: <code>TAILSCALE_AUTH_KEY</code><button class="chip" type="button" data-copy-text="TAILSCALE_AUTH_KEY" aria-label="Copy the name TAILSCALE_AUTH_KEY"><i data-lucide="copy"></i><span class="lbl">Copy</span></button></div></li>
+          <li><div>On GitHub, click inside the <span class="ui input"><i data-lucide="text-cursor-input"></i>Name</span> box and press <kbd>Ctrl</kbd>+<kbd>V</kbd>.<small class="where"><i data-lucide="locate-fixed"></i>First box on the page</small></div></li>
+          <li><div>Go to the Tailscale tab, click <span class="ui"><i data-lucide="mouse-pointer-click"></i>Copy</span> on the key again, then come back to GitHub.</div></li>
+          <li><div>Click inside the big <span class="ui input"><i data-lucide="text-cursor-input"></i>Secret</span> box and press <kbd>Ctrl</kbd>+<kbd>V</kbd>.<small class="where"><i data-lucide="locate-fixed"></i>Large box under "Name"</small></div></li>
+          <li><div>Click the green <span class="ui go"><i data-lucide="mouse-pointer-click"></i>Add secret</span> button.<small class="where"><i data-lucide="locate-fixed"></i>Below the Secret box</small></div></li>
+          <li><div>You’ll see a list called "Repository secrets" with <b>TAILSCALE_AUTH_KEY</b> in it. You can now close the Tailscale window.</div></li>
         </ol>
         <div data-show="secret">
           <h2><i data-lucide="key-round"></i>Now save your own password</h2>
           <ol class="how">
-            <li><div>Click <b>New repository secret</b>.</div></li>
-            <li><div>Name: <code>RDP_PASSWORD</code><button class="chip" type="button" data-copy-text="RDP_PASSWORD" aria-label="Copy the name RDP_PASSWORD"><i data-lucide="copy"></i><span class="lbl">Copy</span></button></div></li>
-            <li><div>Secret: type your password.<small>Use at least 8 characters with capital letters, small letters and numbers. Don't include your sign-in name.</small></div></li>
-            <li><div>Click <b>Add secret</b>.</div></li>
+          <li><div>Click the green <span class="ui go"><i data-lucide="mouse-pointer-click"></i>New repository secret</span> button.<small class="where"><i data-lucide="locate-fixed"></i>Top right of the secrets page</small></div></li>
+          <li><div>In <span class="ui input"><i data-lucide="text-cursor-input"></i>Name</span>, paste <code>RDP_PASSWORD</code><button class="chip" type="button" data-copy-text="RDP_PASSWORD" aria-label="Copy the name RDP_PASSWORD"><i data-lucide="copy"></i><span class="lbl">Copy</span></button></div></li>
+          <li><div>In <span class="ui input"><i data-lucide="text-cursor-input"></i>Secret</span>, type your password.<small>At least 8 characters with capital letters, small letters and numbers. Don’t include your sign-in name.</small></div></li>
+          <li><div>Click <span class="ui go"><i data-lucide="mouse-pointer-click"></i>Add secret</span>.</div></li>
           </ol>
         </div>
         <div class="verify"><p><i data-lucide="eye"></i>Tick when you see this</p>
@@ -447,10 +476,13 @@ footer .dev b { color: var(--ink) }
         <p class="lede">Your PC needs Tailscale too. It's what lets your PC find the cloud computer.</p>
         <div class="actions"><a class="btn primary" href="https://tailscale.com/download/windows" target="_blank" rel="noopener"><i data-lucide="download"></i>Download Tailscale<i data-lucide="arrow-up-right" class="go"></i></a></div>
         <ol class="how">
-          <li><div>Open the file you downloaded and click through the installer.</div></li>
-          <li><div>Find the Tailscale icon at the bottom right of your screen, near the clock.<small>It may be hidden under the small up arrow ^.</small></div></li>
-          <li><div>Click it and choose <b>Log in</b>.</div></li>
-          <li><div>Sign in with the <b>same account</b> you used for the key in step 5.</div></li>
+          <li><div>Click the black <span class="ui"><i data-lucide="mouse-pointer-click"></i>Download Tailscale</span> button above.<small>Your browser downloads a file called something like "tailscale-setup".</small></div></li>
+          <li><div>Open the download: click the <span class="ui"><i data-lucide="mouse-pointer-click"></i>Downloads</span> icon in your browser, then click the file.<small class="where"><i data-lucide="locate-fixed"></i>Top right of your browser, the arrow pointing down</small></div></li>
+          <li><div>Windows asks "Do you want to allow this app to make changes?". Click <span class="ui"><i data-lucide="mouse-pointer-click"></i>Yes</span>.</div></li>
+          <li><div>In the installer, tick "I agree" if it asks, click <span class="ui"><i data-lucide="mouse-pointer-click"></i>Install</span>, then <span class="ui"><i data-lucide="mouse-pointer-click"></i>Close</span> when it finishes.</div></li>
+          <li><div>Next to the clock, click the small <span class="ui"><i data-lucide="mouse-pointer-click"></i>^</span> arrow, then click the Tailscale icon (nine small dots).<small class="where"><i data-lucide="locate-fixed"></i>Bottom right corner of your screen</small></div></li>
+          <li><div>Click <span class="ui"><i data-lucide="mouse-pointer-click"></i>Log in...</span>. Your browser opens. Sign in with the same account you used in step 5, then click <span class="ui go"><i data-lucide="mouse-pointer-click"></i>Connect</span>.</div></li>
+          <li><div>Click the Tailscale icon again. It now shows <b>Connected</b> and your account name.</div></li>
         </ol>
         <div class="verify"><p><i data-lucide="eye"></i>Tick when you see this</p>
           <label><input type="checkbox" id="v7a"> <span>Clicking the Tailscale icon shows <b>Connected</b>.</span></label>
@@ -465,10 +497,14 @@ footer .dev b { color: var(--ink) }
         <p class="lede">Do this every time you want to use it. It takes about 3 minutes to get ready.</p>
         <div class="actions"><a class="btn primary" data-link="workflow" target="_blank" rel="noopener"><i data-lucide="play"></i>Open the start page<i data-lucide="arrow-up-right" class="go"></i></a></div>
         <ol class="how">
-          <li><div>On the right, click <b>Run workflow</b>, then the green <b>Run workflow</b> button in the box that opens.</div></li>
-          <li><div>Wait a few seconds and refresh the page. A new line appears at the top. Click it.</div></li>
-          <li><div>Wait until the yellow circle next to <b>Windows Remote Desktop</b> keeps spinning and no step shows a red cross.<small>Usually 2 to 4 minutes.</small></div></li>
-          <li><div>Click <b>Summary</b> at the top left. You'll see the <b>Address</b>, <b>Username</b> and <b>Password</b>.</div></li>
+          <li><div>Click the black <span class="ui"><i data-lucide="mouse-pointer-click"></i>Open the start page</span> button above.<small>GitHub opens your project’s Actions page with <b data-k="wfName"></b> selected.</small></div></li>
+          <li><div>Find the grey bar that says "This workflow has a workflow_dispatch event trigger" and click <span class="ui"><i data-lucide="mouse-pointer-click"></i>Run workflow ▾</span> on its right.<small class="where"><i data-lucide="locate-fixed"></i>Right side, just above the list of runs</small></div></li>
+          <li><div>A small box opens. Leave "Branch: main" as it is and click the green <span class="ui go"><i data-lucide="mouse-pointer-click"></i>Run workflow</span> button.</div></li>
+          <li><div>Wait 5 seconds and press <kbd>F5</kbd> to refresh. A new line appears at the top with a yellow circle. Click it.</div></li>
+          <li><div>Click the box called <span class="ui"><i data-lucide="mouse-pointer-click"></i>Windows Remote Desktop (Tailscale)</span> to watch it work. Each step gets a tick as it finishes.<small>Usually takes 2 to 4 minutes.</small></div></li>
+          <li><div>When the step "Keep session alive" shows a spinning yellow circle, your computer is ready.</div></li>
+          <li><div>Click <span class="ui tab">Summary</span> at the top left. The table shows the <b>Address</b>, <b>Username</b> and <b>Password</b>.<small class="where"><i data-lucide="locate-fixed"></i>Top of the left-hand menu</small></div></li>
+          <li><div>Copy the Address (it starts with <code>100.</code>) and paste it in the next step.</div></li>
         </ol>
         <div class="note" data-show="secret"><i data-lucide="info"></i><div><b>The password shows as ***.</b>That's expected. Use the password you saved in step 6.</div></div>
         <div class="verify"><p><i data-lucide="eye"></i>Tick when you see this</p>
@@ -492,12 +528,13 @@ footer .dev b { color: var(--ink) }
         <div id="rdpOut" hidden>
           <h2><i data-lucide="screen-share"></i>Now connect</h2>
           <ol class="how">
-            <li><div>Press the <kbd>Windows</kbd> key, type <b>Remote Desktop Connection</b> and open it.</div></li>
-            <li><div>In <b>Computer</b>, paste <code data-k="ip"></code><button class="chip" type="button" data-copy-k="ip" aria-label="Copy the address"><i data-lucide="copy"></i><span class="lbl">Copy</span></button> and click <b>Connect</b>.</div></li>
-            <li><div>When it asks for your details, click <b>More choices</b>, then <b>Use a different account</b>.</div></li>
-            <li><div>User name: <code>.\<span data-k="rdpUser"></span></code><button class="chip" type="button" data-copy-k="login" aria-label="Copy the user name"><i data-lucide="copy"></i><span class="lbl">Copy</span></button><small>Include the dot and backslash at the start.</small></div></li>
-            <li><div>Password: copy it from GitHub's Summary page and paste it. Click <b>OK</b>.</div></li>
-            <li><div>If a warning about a certificate appears, click <b>Yes</b>. Your cloud computer opens.</div></li>
+          <li><div>Press the <kbd>Windows</kbd> key, type <b>Remote Desktop</b>, and click <span class="ui"><i data-lucide="mouse-pointer-click"></i>Remote Desktop Connection</span>.<small class="where"><i data-lucide="locate-fixed"></i>In the Start menu search results</small></div></li>
+          <li><div>In the <span class="ui input"><i data-lucide="text-cursor-input"></i>Computer</span> box, paste <code data-k="ip"></code><button class="chip" type="button" data-copy-k="ip" aria-label="Copy the address"><i data-lucide="copy"></i><span class="lbl">Copy</span></button> and click <span class="ui"><i data-lucide="mouse-pointer-click"></i>Connect</span>.</div></li>
+          <li><div>A window asks for your details. Click <span class="ui"><i data-lucide="mouse-pointer-click"></i>More choices</span>, then <span class="ui"><i data-lucide="mouse-pointer-click"></i>Use a different account</span>.<small>If it already shows a user name box, skip this.</small></div></li>
+          <li><div>In <span class="ui input"><i data-lucide="text-cursor-input"></i>User name</span>, type <code>.\<span data-k="rdpUser"></span></code><button class="chip" type="button" data-copy-k="login" aria-label="Copy the user name"><i data-lucide="copy"></i><span class="lbl">Copy</span></button><small>Include the dot and backslash at the start.</small></div></li>
+          <li><div>In <span class="ui input"><i data-lucide="text-cursor-input"></i>Password</span>, paste the password from GitHub’s Summary page and click <span class="ui"><i data-lucide="mouse-pointer-click"></i>OK</span>.</div></li>
+          <li><div>A warning says "The identity of the remote computer cannot be verified". Click <span class="ui"><i data-lucide="mouse-pointer-click"></i>Yes</span>.<small>That’s normal for a new cloud computer.</small></div></li>
+          <li><div>Your cloud computer opens in a window. You’re in.</div></li>
           </ol>
           <details class="explain" style="margin-top:22px"><summary><i data-lucide="file-symlink"></i>Want a shortcut to double-click next time?</summary>
             <p>Copy the text below, paste it into Notepad, choose <b>File</b> then <b>Save as</b>, set <b>Save as type</b> to <b>All files</b>, and name it <code>My cloud PC.rdp</code>. The address changes each session, so update the first line when you start a new one.</p>
