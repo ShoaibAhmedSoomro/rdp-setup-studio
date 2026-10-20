@@ -135,6 +135,19 @@ details.explain p { margin: 8px 0 0; font-size: 0.95rem }
 .field .err.note { color: var(--muted) }
 .field .err.note::before { content: "i"; border: 1.5px solid var(--muted); color: var(--muted); font-family: Georgia, serif }
 .field .err:empty { display: none }
+.pwbox { display: grid; gap: 16px; border: 1.5px solid var(--ink); border-radius: 12px; padding: 18px }
+.pwrow { display: flex; gap: 8px }
+.pwrow input { flex: 1; min-width: 0 }
+.btn.eye { padding: 0 14px; flex: none }
+.btn.eye[aria-pressed="true"] { background: var(--strong); color: var(--on-strong); border-color: var(--strong) }
+.rules { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px 16px; font-size: 0.9rem; color: var(--muted) }
+.rules li { display: flex; gap: 8px; align-items: flex-start }
+.rules li::before { content: ""; flex: none; width: 16px; height: 16px; margin-top: 3px; border: 1.5px solid var(--muted); border-radius: 50%; display: grid; place-items: center; font-size: 0.65rem; font-weight: 700 }
+.rules li.ok { color: var(--ink) }
+.rules li.ok::before { content: "✓"; background: var(--strong); border-color: var(--strong); color: var(--on-strong) }
+.pwnote { margin: 0; display: flex; gap: 10px; font-size: 0.88rem; color: var(--muted) }
+.pwnote svg { margin-top: 2px }
+@media (max-width: 640px) { .rules { grid-template-columns: minmax(0, 1fr) } }
 .field .err .fix { font: 650 0.85rem var(--f-sans); color: var(--ink); background: var(--panel); border: 1.5px solid var(--ink); border-radius: 6px; padding: 3px 10px; min-height: 28px; cursor: pointer }
 .field .err .fix:hover { background: var(--strong); color: var(--on-strong) }
 .choice { display: grid; gap: 10px }
@@ -297,7 +310,7 @@ footer .dev b { color: var(--ink) }
           <li><svg class="brand" aria-hidden="true"><use href="#logo-tailscale"/></svg><b>Tailscale</b>A private connection between your PC and the cloud computer.</li>
           <li><svg class="brand" aria-hidden="true"><use href="#logo-windows"/></svg><b>Remote Desktop</b>Already on your Windows PC. It shows the cloud computer in a window.</li>
         </ul>
-        <div class="note"><i data-lucide="shield-check"></i><div><b>You won't type any passwords here.</b>This page only gives directions. Anything private goes straight into GitHub or Tailscale.</div></div>
+        <div class="note"><i data-lucide="shield-check"></i><div><b>Nothing you type here leaves this page.</b>Your answers stay in this browser. Keys go straight into GitHub, and if you pick your own password, it's only kept while this page is open.</div></div>
         <div class="verify"><p><i data-lucide="list-checks"></i><span>Tick each one to continue<small>Don't have an account yet? The links open the free sign-up page.</small></span></p>
           <label><input type="checkbox" id="v0a"> <span>I have a GitHub account and I'm signed in. <a href="https://github.com/signup" target="_blank" rel="noopener">Create one</a></span></label>
           <label><input type="checkbox" id="v0b"> <span>I have a Tailscale account. <a href="https://login.tailscale.com/start" target="_blank" rel="noopener">Create one</a> (choose "Sign in with GitHub")</span></label>
@@ -334,8 +347,34 @@ footer .dev b { color: var(--ink) }
             <span class="lab" id="pwLab"><i data-lucide="key-round"></i>Password for the cloud computer</span>
             <div class="choice" role="radiogroup" aria-labelledby="pwLab">
               <label><input type="radio" name="pw" value="auto"><span><b>Make a new one each time (recommended)</b>GitHub shows it to you when the computer is ready. Nothing to remember.</span></label>
-              <label><input type="radio" name="pw" value="secret"><span><b>Use my own password</b>Same password every time. You'll save it in GitHub in step 6.</span></label>
+              <label><input type="radio" name="pw" value="secret"><span><b>Use my own password</b>Same password every time. Type it below, and you'll save it in GitHub in step 6.</span></label>
             </div>
+          </div>
+          <div class="pwbox" data-show="secret">
+            <div class="field">
+              <label for="pw1"><i data-lucide="lock-keyhole"></i>Type your password</label>
+              <div class="pwrow">
+                <input id="pw1" type="password" autocomplete="new-password" spellcheck="false" aria-describedby="pwRules">
+                <button class="btn eye" type="button" data-eye="pw1" aria-label="Show password"><i data-lucide="eye"></i></button>
+              </div>
+            </div>
+            <ul class="rules" id="pwRules" aria-live="polite">
+              <li data-rule="len">At least 8 characters</li>
+              <li data-rule="upper">A capital letter (A to Z)</li>
+              <li data-rule="lower">A small letter (a to z)</li>
+              <li data-rule="num">A number (0 to 9)</li>
+              <li data-rule="space">No spaces</li>
+              <li data-rule="name">Doesn't contain your Windows sign-in name</li>
+            </ul>
+            <div class="field">
+              <label for="pw2"><i data-lucide="lock-keyhole"></i>Type it again</label>
+              <div class="pwrow">
+                <input id="pw2" type="password" autocomplete="new-password" spellcheck="false" aria-describedby="err-pw2">
+                <button class="btn eye" type="button" data-eye="pw2" aria-label="Show password"><i data-lucide="eye"></i></button>
+              </div>
+              <span class="err" id="err-pw2"></span>
+            </div>
+            <p class="pwnote"><i data-lucide="shield-check"></i><span>Your password stays on this page only while it's open. It's never saved or sent anywhere. In step 6 you'll copy it into GitHub, which keeps it locked away.</span></p>
           </div>
           <details class="more">
             <summary><i data-lucide="sliders-horizontal"></i>More options (you can skip these)</summary>
@@ -467,7 +506,8 @@ footer .dev b { color: var(--ink) }
           <ol class="how">
           <li><div>Click the green <span class="ui go"><i data-lucide="mouse-pointer-click"></i>New repository secret</span> button.<small class="where"><i data-lucide="locate-fixed"></i>Top right of the secrets page</small></div></li>
           <li><div>In <span class="ui input"><i data-lucide="text-cursor-input"></i>Name</span>, paste <code>RDP_PASSWORD</code><button class="chip" type="button" data-copy-text="RDP_PASSWORD" aria-label="Copy the name RDP_PASSWORD"><i data-lucide="copy"></i><span class="lbl">Copy</span></button></div></li>
-          <li><div>In <span class="ui input"><i data-lucide="text-cursor-input"></i>Secret</span>, type your password.<small>At least 8 characters with capital letters, small letters and numbers. Don’t include your sign-in name.</small></div></li>
+          <li><div>Click this button to copy the password you typed in step 2: <button class="chip" type="button" data-copy-k="pw" aria-label="Copy your password"><i data-lucide="copy"></i><span class="lbl">Copy my password</span></button><small id="pwGone" hidden>The password was cleared when this page was closed. Go back to step 2 and type it again, then come back here.</small></div></li>
+          <li><div>Click inside the big <span class="ui input"><i data-lucide="text-cursor-input"></i>Secret</span> box and press <kbd>Ctrl</kbd>+<kbd>V</kbd>.</div></li>
           <li><div>Click <span class="ui go"><i data-lucide="mouse-pointer-click"></i>Add secret</span>.</div></li>
           </ol>
         </div>
@@ -808,6 +848,15 @@ function checkGitHub() {
 }
 const ghMissing = () => gh.status === 'missing' && gh.user === state.cfg.ghUser.trim();
 
+// Own password: kept in memory only (never in localStorage, never in the workflow file)
+const pw = { a: '', b: '' };
+function pwRules() {
+  const a = pw.a, u = state.cfg.rdpUser.trim().toLowerCase();
+  return { len: a.length >= 8, upper: /[A-Z]/.test(a), lower: /[a-z]/.test(a), num: /\d/.test(a),
+    space: !!a && !/\s/.test(a), name: !!a && !(u.length >= 3 && a.toLowerCase().includes(u)) };
+}
+const pwOk = () => Object.values(pwRules()).every(Boolean) && pw.a === pw.b;
+
 function validCfg(show) {
   let ok = true, firstBad = null;
   for (const [k, [test, generic]] of Object.entries(RULES)) {
@@ -832,6 +881,18 @@ function validCfg(show) {
     } else say(k, 'good', 'Looks good.');
   }
   if (ghMissing()) ok = false;
+  if (state.cfg.pw === 'secret') {
+    if (!pwOk()) ok = false;
+    if (show) {
+      const r = pwRules();
+      $$('#pwRules li').forEach(li => li.classList.toggle('ok', r[li.dataset.rule]));
+      if (!pw.b) say('pw2', '', '');
+      else if (pw.a !== pw.b) say('pw2', 'bad', 'The two passwords don’t match yet.');
+      else if (!Object.values(r).every(Boolean)) say('pw2', 'note', 'They match. Now tick off every item in the list above.');
+      else say('pw2', 'good', 'Passwords match.');
+      $('#pw2').setAttribute('aria-invalid', !!pw.b && pw.a !== pw.b);
+    }
+  }
   if (show && firstBad && ['fullName', 'wfName', 'host'].includes(firstBad)) $('details.more').open = true;
   return ok;
 }
@@ -900,6 +961,7 @@ function render() {
   $('#ip').setAttribute('aria-invalid', !!ipv && !ipGood);
   if (ipGood) $('#rdpFile').textContent = rdpFile();
 
+  if (pw.a) $('#pwGone').hidden = true;
   steps.forEach((s, i) => s.hidden = i !== state.cur);
   const ok = stepOk(state.cur), last = state.cur === steps.length - 1;
   $('#back').disabled = state.cur === 0;
@@ -909,7 +971,8 @@ function render() {
   st.className = 'status' + (ok ? ' ok' : '');
   st.textContent = last && ok ? 'You’re all set. Enjoy your cloud computer.'
     : ok ? 'Done. Click Continue.'
-    : state.cur === 1 ? (ghMissing() ? 'Check your GitHub username.' : Object.keys(RULES).some(k => !state.cfg[k].trim()) ? 'Fill in your GitHub username to continue.' : 'Check the answers marked with !')
+    : state.cur === 1 ? (ghMissing() ? 'Check your GitHub username.'
+      : validCfg(false) === false && Object.keys(RULES).every(k => RULES[k][0](state.cfg[k].trim())) && !ghMissing() ? 'Type your password twice and tick off the list.' : Object.keys(RULES).some(k => !state.cfg[k].trim()) ? 'Fill in your GitHub username to continue.' : 'Check the answers marked with !')
     : 'Tick the boxes when you’ve done each part.';
 
   const done = steps.map((_, i) => i < state.max || (i <= state.max && stepOk(i)));
@@ -937,6 +1000,7 @@ $('#reset').onclick = () => {
   const b = $('#reset');
   if (!resetArmed) { resetArmed = true; label(b, 'Click again to clear everything'); setTimeout(() => { resetArmed = false; label(b, 'Start over'); }, 4000); return; }
   state = { cur: 0, max: 0, cfg: { ...DEFAULTS }, checks: {} };
+  pw.a = pw.b = ''; $('#pw1').value = $('#pw2').value = '';
   resetArmed = false; label(b, 'Start over');
   load(); validCfg(true); render();
 };
@@ -946,6 +1010,8 @@ document.addEventListener('input', e => {
   if (t.name === 'pw') state.cfg.pw = t.value;
   else if (t.id in state.cfg) state.cfg[t.id] = t.value;
   if (t.type === 'checkbox') state.checks[t.id] = t.checked;
+  if (t.id === 'pw1') pw.a = t.value;
+  if (t.id === 'pw2') pw.b = t.value;
   if (t.id === 'ghUser' || t.id === 'repo') checkGitHub();
   if (t.closest('#cfg')) validCfg(true);
   render();
@@ -963,7 +1029,18 @@ document.addEventListener('click', e => {
   if (!b) return;
   if (b.dataset.copy) copy($('#' + b.dataset.copy).textContent, b, $('#' + b.dataset.copy));
   else if (b.dataset.copyText) copy(b.dataset.copyText, b);
+  else if (b.dataset.copyK === 'pw') { if (pw.a) copy(pw.a, b); else $('#pwGone').hidden = false; }
   else copy(b.dataset.copyK === 'login' ? `.\\${state.cfg.rdpUser.trim()}` : state.cfg.ip.trim(), b);
+});
+
+// Show / hide password
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-eye]');
+  if (!b) return;
+  const inp = $('#' + b.dataset.eye), show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  b.setAttribute('aria-pressed', show);
+  b.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
 });
 
 // Live star and fork counts; if GitHub can't be reached the dashes stay and the button still works
